@@ -1,30 +1,56 @@
+import { Suspense } from "react";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import AddExpenseButton from "@/components/add-expense-button";
 import CategoryBars from "@/components/category-bars";
 import ExpenseList from "@/components/expense-list";
-import { byCategory, byUser, total } from "@/lib/aggregate";
+import { CardSkeleton, ListSkeleton } from "@/components/skeletons";
+import { byCategory, byOwner, total } from "@/lib/aggregate";
 import { requireProfile } from "@/lib/auth";
 import { currentMonthKey, shiftMonth } from "@/lib/dates";
 import { formatMoney, formatMonthYear } from "@/lib/format";
-import { getBudgets, getCategories, getMonthExpenses, getProfiles } from "@/lib/queries";
+import {
+  getBudgets,
+  getCategories,
+  getMonthExpenses,
+  getMonthTotal,
+  getProfiles,
+} from "@/lib/queries";
 
-export default async function DashboardPage() {
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<DashboardSkeleton />}>
+      <DashboardContent />
+    </Suspense>
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-5">
+      <CardSkeleton height={190} />
+      <CardSkeleton height={200} />
+      <ListSkeleton rows={4} />
+    </div>
+  );
+}
+
+async function DashboardContent() {
   const { supabase } = await requireProfile();
 
   const month = currentMonthKey();
   const previousMonth = shiftMonth(month, -1);
 
-  const [expenses, previousExpenses, categories, profiles, budgets] = await Promise.all([
+  const [expenses, spentBefore, categories, profiles, budgets] = await Promise.all([
     getMonthExpenses(supabase, month),
-    getMonthExpenses(supabase, previousMonth),
+    getMonthTotal(supabase, previousMonth),
     getCategories(supabase),
     getProfiles(supabase),
     getBudgets(supabase, month),
   ]);
 
   const spent = total(expenses);
-  const spentBefore = total(previousExpenses);
   const change = spentBefore > 0 ? (spent - spentBefore) / spentBefore : null;
+  const owners = byOwner(expenses, profiles);
   const limits = new Map(budgets.map((b) => [b.category_id, b.limit_amount]));
   const monthLimit = budgets.reduce((sum, b) => sum + b.limit_amount, 0);
 
@@ -62,27 +88,27 @@ export default async function DashboardPage() {
           <span className="text-muted">{expenses.length} записів</span>
         </div>
 
-        {profiles.length > 0 && spent > 0 && (
+        {owners.length > 0 && spent > 0 && (
           <div className="mt-4 space-y-2">
             <div className="flex h-2 overflow-hidden rounded-full bg-surface-2">
-              {byUser(expenses, profiles).map((user) => (
+              {owners.map((owner) => (
                 <div
-                  key={user.id}
-                  style={{ width: `${user.share * 100}%`, background: user.color }}
+                  key={owner.id}
+                  style={{ width: `${owner.share * 100}%`, background: owner.color }}
                 />
               ))}
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
-              {byUser(expenses, profiles).map((user) => (
-                <span key={user.id} className="flex items-center gap-1.5">
+              {owners.map((owner) => (
+                <span key={owner.id} className="flex items-center gap-1.5">
                   <span
                     className="h-2 w-2 rounded-full"
-                    style={{ background: user.color }}
+                    style={{ background: owner.color }}
                     aria-hidden
                   />
-                  {user.name}
+                  {owner.name}
                   <span className="font-medium tabular-nums">
-                    {formatMoney(user.total)}
+                    {formatMoney(owner.total)}
                   </span>
                 </span>
               ))}
@@ -100,18 +126,23 @@ export default async function DashboardPage() {
         <div className="mb-2 flex items-center justify-between px-1">
           <h2 className="text-sm font-semibold">Останні витрати</h2>
           <div className="hidden md:block">
-            <AddExpenseButton categories={categories} variant="inline" />
+            <AddExpenseButton
+              categories={categories}
+              profiles={profiles}
+              variant="inline"
+            />
           </div>
         </div>
         <ExpenseList
           expenses={expenses.slice(0, 10)}
           categories={categories}
+          profiles={profiles}
           emptyText="Цього місяця витрат ще немає — додай першу"
         />
       </section>
 
       <div className="md:hidden">
-        <AddExpenseButton categories={categories} />
+        <AddExpenseButton categories={categories} profiles={profiles} />
       </div>
     </div>
   );

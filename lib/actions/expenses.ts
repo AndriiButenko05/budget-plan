@@ -6,6 +6,20 @@ import { toISODate } from "@/lib/dates";
 import { type ActionResult, parseAmount, text } from "@/lib/actions/shared";
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Порожнє значення — спільна витрата (в базі NULL).
+ * Що id справді існує, перевіряє foreign key на profiles, тому
+ * зайвого запиту до бази тут не робимо — досить перевірити форму.
+ */
+function attribution(raw: FormDataEntryValue | null) {
+  const value = String(raw ?? "").trim();
+  if (!value) return { ok: true as const, id: null };
+  return UUID.test(value)
+    ? { ok: true as const, id: value }
+    : { ok: false as const, id: null };
+}
 
 function refreshAll() {
   revalidatePath("/");
@@ -28,8 +42,12 @@ export async function addExpense(
   const rawDate = String(formData.get("spent_at") ?? "");
   const spentAt = ISO_DATE.test(rawDate) ? rawDate : toISODate(new Date());
 
+  const owner = attribution(formData.get("attributed_to"));
+  if (!owner.ok) return { error: "Незрозуміло, на кого записати витрату" };
+
   const { error } = await supabase.from("expenses").insert({
     user_id: profile.id,
+    attributed_to: owner.id,
     category_id: categoryId,
     amount,
     spent_at: spentAt,
@@ -60,9 +78,13 @@ export async function updateExpense(
   const rawDate = String(formData.get("spent_at") ?? "");
   if (!ISO_DATE.test(rawDate)) return { error: "Невірна дата" };
 
+  const owner = attribution(formData.get("attributed_to"));
+  if (!owner.ok) return { error: "Незрозуміло, на кого записати витрату" };
+
   const { error } = await supabase
     .from("expenses")
     .update({
+      attributed_to: owner.id,
       category_id: categoryId,
       amount,
       spent_at: rawDate,

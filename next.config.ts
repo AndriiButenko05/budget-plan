@@ -20,6 +20,14 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  /**
+   * Partial Prerendering: статична оболонка (шапка, меню, скелетони)
+   * віддається одразу, а дані під <Suspense> доїжджають стрімом.
+   * Вимагає, щоб усе, що читає куки, було під Suspense.
+   */
+  cacheComponents: true,
+  /** Один спільний App Shell на маршрут замість префетчу на кожне посилання. */
+  partialPrefetching: true,
   poweredByHeader: false,
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];

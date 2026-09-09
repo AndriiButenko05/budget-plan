@@ -1,13 +1,37 @@
+import { Suspense } from "react";
 import BudgetManager from "@/components/settings/budget-manager";
 import CategoryManager from "@/components/settings/category-manager";
 import ProfileForm from "@/components/settings/profile-form";
+import SignOutButton from "@/components/sign-out-button";
+import { CardSkeleton } from "@/components/skeletons";
 import { requireProfile } from "@/lib/auth";
 import { currentMonthKey } from "@/lib/dates";
 import { getBudgets, getCategories, getProfiles } from "@/lib/queries";
 
 export const metadata = { title: "Налаштування — Наш бюджет" };
 
-export default async function SettingsPage() {
+export default function SettingsPage() {
+  return (
+    <div className="space-y-5">
+      <h1 className="px-1 text-lg font-semibold">Налаштування</h1>
+      <Suspense fallback={<SettingsSkeleton />}>
+        <SettingsContent />
+      </Suspense>
+    </div>
+  );
+}
+
+function SettingsSkeleton() {
+  return (
+    <div className="space-y-5">
+      <CardSkeleton height={210} />
+      <CardSkeleton height={260} />
+      <CardSkeleton height={240} />
+    </div>
+  );
+}
+
+async function SettingsContent() {
   const { supabase, profile } = await requireProfile();
   const month = currentMonthKey();
 
@@ -20,9 +44,7 @@ export default async function SettingsPage() {
   const activeCategories = categories.filter((c) => !c.is_archived);
 
   return (
-    <div className="space-y-5">
-      <h1 className="px-1 text-lg font-semibold">Налаштування</h1>
-
+    <>
       <section className="card p-5">
         <h2 className="mb-4 text-sm font-semibold">Мій профіль</h2>
         <ProfileForm profile={profile} />
@@ -59,6 +81,10 @@ export default async function SettingsPage() {
         <h2 className="mb-4 text-sm font-semibold">Ліміти бюджету</h2>
         <BudgetManager categories={activeCategories} budgets={budgets} month={month} />
       </section>
-    </div>
+
+      <div className="pt-1">
+        <SignOutButton />
+      </div>
+    </>
   );
 }

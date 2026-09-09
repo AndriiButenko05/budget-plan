@@ -1,6 +1,7 @@
 "use client";
 
 import { Download } from "lucide-react";
+import { SHARED } from "@/lib/labels";
 import type { ExpenseRow } from "@/lib/types";
 
 /** Вивантажує показані витрати у CSV (Excel-сумісний, з BOM). */
@@ -12,11 +13,11 @@ export default function ExportCsvButton({
   filename: string;
 }) {
   function download() {
-    const header = ["Дата", "Категорія", "Хто", "Сума (PLN)", "Нотатка"];
+    const header = ["Дата", "Категорія", "На кого", "Сума (PLN)", "Нотатка"];
     const rows = expenses.map((expense) => [
       expense.spent_at,
       expense.category?.name ?? "",
-      expense.author?.name ?? "",
+      expense.owner?.name ?? SHARED.name,
       expense.amount.toFixed(2),
       expense.note ?? "",
     ]);

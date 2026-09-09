@@ -12,15 +12,17 @@ import {
 } from "recharts";
 import { axisStyle, gridStroke, moneyTooltip, tooltipStyle } from "@/components/charts/theme";
 import { formatMoneyShort } from "@/lib/format";
-import type { Profile } from "@/lib/types";
+
+
+type Series = { id: string; name: string; color: string };
 
 type Props = {
   data: Record<string, string | number>[];
-  profiles: Profile[];
+  series: Series[];
 };
 
 /** Хто скільки витратив у кожній категорії. */
-export default function UserCompareBar({ data, profiles }: Props) {
+export default function OwnerCompareBar({ data, series }: Props) {
   if (data.length === 0) {
     return <p className="py-12 text-center text-sm text-muted">Немає даних</p>;
   }
@@ -42,12 +44,12 @@ export default function UserCompareBar({ data, profiles }: Props) {
             {...tooltipStyle}
           />
           <Legend wrapperStyle={{ fontSize: 12, color: "#9a99b2" }} />
-          {profiles.map((profile) => (
+          {series.map((entry) => (
             <Bar
-              key={profile.id}
-              dataKey={profile.id}
-              name={profile.name}
-              fill={profile.color}
+              key={entry.id}
+              dataKey={entry.id}
+              name={entry.name}
+              fill={entry.color}
               radius={[0, 4, 4, 0]}
             />
           ))}

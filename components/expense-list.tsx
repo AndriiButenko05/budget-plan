@@ -6,11 +6,13 @@ import { Pencil, Trash2 } from "lucide-react";
 import ExpenseDialog from "@/components/expense-dialog";
 import { deleteExpense } from "@/lib/actions/expenses";
 import { formatDayMonth, formatMoney } from "@/lib/format";
-import type { Category, ExpenseRow } from "@/lib/types";
+import { SHARED } from "@/lib/labels";
+import type { Category, ExpenseRow, Profile } from "@/lib/types";
 
 type Props = {
   expenses: ExpenseRow[];
   categories: Category[];
+  profiles: Profile[];
   /** Розбивати на групи з заголовком-датою. */
   grouped?: boolean;
   emptyText?: string;
@@ -19,6 +21,7 @@ type Props = {
 export default function ExpenseList({
   expenses,
   categories,
+  profiles,
   grouped = false,
   emptyText = "Записів немає",
 }: Props) {
@@ -66,7 +69,7 @@ export default function ExpenseList({
               {rows.map((expense) => (
                 <li
                   key={expense.id}
-                  className={`group flex items-center gap-3 px-3 py-2.5 transition-opacity ${
+                  className={`group flex items-start gap-3 px-3 py-2.5 transition-opacity ${
                     pendingId === expense.id ? "opacity-40" : ""
                   }`}
                 >
@@ -85,14 +88,18 @@ export default function ExpenseList({
                       {expense.category?.name ?? "Без категорії"}
                     </p>
                     <p className="truncate text-xs text-muted">
-                      {expense.author && (
-                        <span style={{ color: expense.author.color }}>
-                          {expense.author.name}
-                        </span>
-                      )}
-                      {expense.note && ` · ${expense.note}`}
+                      <span
+                        style={{ color: expense.owner?.color ?? SHARED.color }}
+                      >
+                        {expense.owner?.name ?? SHARED.name}
+                      </span>
                       {!grouped && ` · ${formatDayMonth(expense.spent_at)}`}
                     </p>
+                    {expense.note && (
+                      <p className="mt-0.5 text-xs leading-snug text-muted break-words">
+                        {expense.note}
+                      </p>
+                    )}
                   </div>
 
                   <span className="shrink-0 text-sm font-semibold tabular-nums">
@@ -129,6 +136,7 @@ export default function ExpenseList({
         open={editing !== null}
         onClose={() => setEditing(null)}
         categories={categories}
+        profiles={profiles}
         expense={editing ?? undefined}
       />
     </>

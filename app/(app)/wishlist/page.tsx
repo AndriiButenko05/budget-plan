@@ -1,29 +1,13 @@
+import { Suspense } from "react";
 import WishlistBoard from "@/components/wishlist-board";
+import WishlistTotals from "@/components/wishlist-totals";
+import { CardSkeleton } from "@/components/skeletons";
 import { requireProfile } from "@/lib/auth";
 import { getWishlist } from "@/lib/queries";
 
 export const metadata = { title: "Вішліст — Наш бюджет" };
 
-const SIGNED_URL_TTL_SECONDS = 60 * 60;
-
-export default async function WishlistPage() {
-  const { supabase } = await requireProfile();
-  const items = await getWishlist(supabase);
-
-  // Бакет приватний, тож для кожного фото робимо тимчасове посилання.
-  const paths = items.map((item) => item.image_path).filter((p): p is string => Boolean(p));
-  const imageUrls: Record<string, string> = {};
-
-  if (paths.length > 0) {
-    const { data } = await supabase.storage
-      .from("wishlist")
-      .createSignedUrls(paths, SIGNED_URL_TTL_SECONDS);
-
-    for (const entry of data ?? []) {
-      if (entry.path && entry.signedUrl) imageUrls[entry.path] = entry.signedUrl;
-    }
-  }
-
+export default function WishlistPage() {
   return (
     <div className="space-y-4">
       <div className="px-1">
@@ -33,7 +17,33 @@ export default async function WishlistPage() {
         </p>
       </div>
 
-      <WishlistBoard items={items} imageUrls={imageUrls} />
+      <Suspense fallback={<WishlistSkeleton />}>
+        <WishlistContent />
+      </Suspense>
+    </div>
+  );
+}
+
+async function WishlistContent() {
+  const { supabase } = await requireProfile();
+  const items = await getWishlist(supabase);
+
+  return (
+    <>
+      <WishlistTotals items={items} />
+      <WishlistBoard items={items} />
+    </>
+  );
+}
+
+function WishlistSkeleton() {
+  return (
+    <div className="space-y-4">
+      <CardSkeleton height={92} />
+      <div className="grid gap-5 md:grid-cols-2">
+        <CardSkeleton height={220} />
+        <CardSkeleton height={220} />
+      </div>
     </div>
   );
 }

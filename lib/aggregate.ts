@@ -1,5 +1,12 @@
 import { daysInMonth } from "@/lib/dates";
-import type { Category, ExpenseRow, Profile } from "@/lib/types";
+import { SHARED } from "@/lib/labels";
+import type {
+  Category,
+  Currency,
+  ExpenseRow,
+  Profile,
+  WishlistItem,
+} from "@/lib/types";
 
 export type CategorySlice = {
   id: string;
@@ -10,7 +17,8 @@ export type CategorySlice = {
   share: number;
 };
 
-export type UserSlice = {
+/** Людина або спільний кошик. */
+export type OwnerSlice = {
   id: string;
   name: string;
   color: string;
@@ -47,26 +55,42 @@ export function byCategory(rows: ExpenseRow[], categories: Category[]): Category
     .sort((a, b) => b.total - a.total);
 }
 
-/** Суми по кожному з нас — навіть якщо хтось нічого не витратив. */
-export function byUser(rows: ExpenseRow[], profiles: Profile[]): UserSlice[] {
+/**
+ * Суми по кожному з нас плюс спільний кошик.
+ * Людей показуємо завжди, спільні — лише якщо там щось є.
+ */
+export function byOwner(rows: ExpenseRow[], profiles: Profile[]): OwnerSlice[] {
   const grand = total(rows);
   const sums = new Map<string, number>();
+
   for (const row of rows) {
-    sums.set(row.user_id, (sums.get(row.user_id) ?? 0) + row.amount);
+    const key = row.attributed_to ?? SHARED.id;
+    sums.set(key, (sums.get(key) ?? 0) + row.amount);
   }
 
-  return profiles
-    .map((p) => {
-      const sum = sums.get(p.id) ?? 0;
-      return {
-        id: p.id,
-        name: p.name,
-        color: p.color,
-        total: sum,
-        share: grand > 0 ? sum / grand : 0,
-      };
-    })
-    .sort((a, b) => b.total - a.total);
+  const share = (sum: number) => (grand > 0 ? sum / grand : 0);
+
+  const people = profiles.map((p) => {
+    const sum = sums.get(p.id) ?? 0;
+    return { id: p.id, name: p.name, color: p.color, total: sum, share: share(sum) };
+  });
+
+  const sharedSum = sums.get(SHARED.id) ?? 0;
+  const slices =
+    sharedSum > 0
+      ? [
+          ...people,
+          {
+            id: SHARED.id,
+            name: SHARED.name,
+            color: SHARED.color,
+            total: sharedSum,
+            share: share(sharedSum),
+          },
+        ]
+      : people;
+
+  return slices.sort((a, b) => b.total - a.total);
 }
 
 /** Наростаюча сума по днях місяця — для лінійного графіка. */
@@ -97,19 +121,49 @@ export function byMonth(rows: ExpenseRow[], monthKeys: string[]) {
   }));
 }
 
-/** Матриця «категорія × людина» — для графіка порівняння. */
-export function categoryByUser(
+/** Матриця «категорія × кошик» — для графіка порівняння. */
+export function categoryByOwner(
   rows: ExpenseRow[],
   categories: Category[],
   profiles: Profile[],
 ) {
+  const keys = [...profiles.map((p) => p.id), SHARED.id];
+
   return byCategory(rows, categories).map((slice) => {
     const entry: Record<string, string | number> = { name: slice.name };
-    for (const p of profiles) {
-      entry[p.id] = rows
-        .filter((r) => r.category_id === slice.id && r.user_id === p.id)
-        .reduce((sum, r) => sum + r.amount, 0);
+    for (const key of keys) entry[key] = 0;
+
+    for (const row of rows) {
+      if (row.category_id !== slice.id) continue;
+      const key = row.attributed_to ?? SHARED.id;
+      entry[key] = (Number(entry[key]) || 0) + row.amount;
     }
+
     return entry;
   });
+}
+
+/** Серії для графіка порівняння: люди плюс спільний кошик. */
+export function ownerSeries(profiles: Profile[]) {
+  return [
+    ...profiles.map((p) => ({ id: p.id, name: p.name, color: p.color })),
+    { id: SHARED.id, name: SHARED.name, color: SHARED.color },
+  ];
+}
+
+/**
+ * Суми позицій вішліста по валютах. Складати PLN з UAH не можна —
+ * курсу ми не зберігаємо, тож кожна валюта йде окремим числом.
+ * Позиції без ціни просто не враховуються.
+ */
+export function totalsByCurrency(items: WishlistItem[]) {
+  const sums = new Map<Currency, number>();
+
+  for (const item of items) {
+    if (item.price === null) continue;
+    const currency = item.currency ?? "PLN";
+    sums.set(currency, (sums.get(currency) ?? 0) + item.price);
+  }
+
+  return [...sums.entries()].sort(([a], [b]) => a.localeCompare(b));
 }

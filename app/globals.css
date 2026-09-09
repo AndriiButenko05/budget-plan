@@ -46,8 +46,9 @@ body {
 }
 
 /* Базові елементи форм — щоб не повторювати класи в кожному полі */
+/* Ширину задає утиліта в розмітці (w-full, w-24, flex-1) — інакше
+   width: 100% тут перебивав би Tailwind і ламав вузькі поля. */
 .field {
-  width: 100%;
   border-radius: 0.75rem;
   border: 1px solid var(--border);
   background: var(--surface-2);
@@ -65,6 +66,9 @@ body {
   color: color-mix(in srgb, var(--muted) 75%, transparent);
 }
 
+/* Увага: backdrop-filter робить .card системою координат для
+   position: fixed усередині. Модалки треба рендерити поза карточкою,
+   інакше їх обріже overflow-hidden. */
 .card {
   border-radius: 1rem;
   border: 1px solid var(--border);

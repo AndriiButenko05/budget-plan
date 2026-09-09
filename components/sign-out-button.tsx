@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
+/** Живе внизу сторінки налаштувань — у шапці кнопку легко зачепити випадково. */
 export default function SignOutButton() {
   const router = useRouter();
 
@@ -17,11 +18,10 @@ export default function SignOutButton() {
     <button
       type="button"
       onClick={signOut}
-      aria-label="Вийти"
-      title="Вийти"
-      className="rounded-xl border border-line bg-surface-2 p-2 text-muted transition-colors hover:text-danger"
+      className="btn w-full border border-danger/45 bg-danger/10 text-danger transition-colors hover:border-danger/70 hover:bg-danger/20"
     >
       <LogOut className="h-4 w-4" />
+      Вийти
     </button>
   );
 }

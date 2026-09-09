@@ -4,20 +4,18 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import WishCard from "@/components/wish-card";
 import WishDialog from "@/components/wish-dialog";
+import { OWNER_LABELS } from "@/lib/labels";
 import type { WishOwner, WishlistItem } from "@/lib/types";
-
-const LABELS: Record<WishOwner, string> = { her: "Для неї", him: "Для нього" };
 
 type Props = {
   items: WishlistItem[];
-  /** image_path → підписаний URL. */
-  imageUrls: Record<string, string>;
 };
 
 /** Дві колонки на десктопі, таби на телефоні. */
-export default function WishlistBoard({ items, imageUrls }: Props) {
+export default function WishlistBoard({ items }: Props) {
   const [tab, setTab] = useState<WishOwner>("her");
   const [dialogOwner, setDialogOwner] = useState<WishOwner | null>(null);
+  const [editingItem, setEditingItem] = useState<WishlistItem | null>(null);
 
   return (
     <>
@@ -43,7 +41,7 @@ export default function WishlistBoard({ items, imageUrls }: Props) {
                   : undefined
               }
             >
-              {LABELS[owner]}
+              {OWNER_LABELS[owner]}
             </button>
           );
         })}
@@ -66,7 +64,7 @@ export default function WishlistBoard({ items, imageUrls }: Props) {
                   aria-hidden
                 />
                 <h2 className="mr-auto text-sm font-semibold" style={{ color }}>
-                  {LABELS[owner]}
+                  {OWNER_LABELS[owner]}
                 </h2>
                 <button
                   type="button"
@@ -88,7 +86,7 @@ export default function WishlistBoard({ items, imageUrls }: Props) {
                     <WishCard
                       key={item.id}
                       item={item}
-                      imageUrl={item.image_path ? (imageUrls[item.image_path] ?? null) : null}
+                      onEdit={() => setEditingItem(item)}
                     />
                   ))}
                 </div>
@@ -103,8 +101,17 @@ export default function WishlistBoard({ items, imageUrls }: Props) {
         open={dialogOwner !== null}
         onClose={() => setDialogOwner(null)}
         defaultOwner={dialogOwner ?? "her"}
-        labels={LABELS}
       />
+
+      {editingItem && (
+        <WishDialog
+          key={editingItem.id}
+          open
+          onClose={() => setEditingItem(null)}
+          defaultOwner={editingItem.for_whom}
+          item={editingItem}
+        />
+      )}
     </>
   );
 }

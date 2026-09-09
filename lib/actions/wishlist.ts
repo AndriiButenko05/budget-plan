@@ -3,9 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { requireProfile } from "@/lib/auth";
 import { type ActionResult, parseAmount, text } from "@/lib/actions/shared";
-import type { WishOwner } from "@/lib/types";
+import type { Currency, WishOwner } from "@/lib/types";
 
 const BUCKET = "wishlist";
+
+function currency(raw: FormDataEntryValue | null): Currency {
+  return String(raw ?? "") === "UAH" ? "UAH" : "PLN";
+}
 
 function owner(raw: FormDataEntryValue | null): WishOwner | null {
   const value = String(raw ?? "");
@@ -57,10 +61,63 @@ export async function addWishItem(
     url: safeUrl(formData.get("url")),
     note: text(formData.get("note"), 1000),
     price: rawPrice ? parseAmount(rawPrice) : null,
+    currency: currency(formData.get("currency")),
     image_path: safeImagePath(formData.get("image_path")),
   });
 
   if (error) return { error: "Не вдалося зберегти" };
+
+  revalidatePath("/wishlist");
+  return { ok: true };
+}
+
+export async function updateWishItem(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
+  const { supabase } = await requireProfile();
+
+  const id = text(formData.get("id"), 40);
+  if (!id) return { error: "Запис не знайдено" };
+
+  const forWhom = owner(formData.get("for_whom"));
+  if (!forWhom) return { error: "Обери, для кого це" };
+
+  const title = text(formData.get("title"), 200);
+  if (!title) return { error: "Додай назву" };
+
+  // Старий шлях беремо з бази, а не з форми — так браузер не може
+  // попросити видалити чуже фото.
+  const { data: existing } = await supabase
+    .from("wishlist_items")
+    .select("image_path")
+    .eq("id", id)
+    .maybeSingle<{ image_path: string | null }>();
+
+  if (!existing) return { error: "Запис не знайдено" };
+
+  const imagePath = safeImagePath(formData.get("image_path"));
+  const rawPrice = String(formData.get("price") ?? "").trim();
+
+  const { error } = await supabase
+    .from("wishlist_items")
+    .update({
+      for_whom: forWhom,
+      title,
+      url: safeUrl(formData.get("url")),
+      note: text(formData.get("note"), 1000),
+      price: rawPrice ? parseAmount(rawPrice) : null,
+      currency: currency(formData.get("currency")),
+      image_path: imagePath,
+    })
+    .eq("id", id);
+
+  if (error) return { error: "Не вдалося зберегти" };
+
+  // Старе фото прибираємо лише після успішного оновлення запису.
+  if (existing.image_path && existing.image_path !== imagePath) {
+    await supabase.storage.from(BUCKET).remove([existing.image_path]);
+  }
 
   revalidatePath("/wishlist");
   return { ok: true };

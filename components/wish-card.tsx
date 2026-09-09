@@ -2,18 +2,23 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, ExternalLink, RotateCcw, Trash2 } from "lucide-react";
+import { Check, Clock, ExternalLink, Pencil, Trash2 } from "lucide-react";
 import { deleteWishItem, toggleWishStatus } from "@/lib/actions/wishlist";
-import { formatMoney } from "@/lib/format";
+import { formatMoneyIn } from "@/lib/format";
+import { imageSrc } from "@/lib/image-src";
 import type { WishlistItem } from "@/lib/types";
 
 type Props = {
   item: WishlistItem;
-  /** Підписане посилання на фото — живе годину, генерується на сервері. */
-  imageUrl: string | null;
+  /**
+   * Форму редагування відкриває батько, а не карточка: у .card є
+   * backdrop-filter, через який position: fixed усередині рахується
+   * від карточки, і модалку обрізало б її overflow-hidden.
+   */
+  onEdit: () => void;
 };
 
-export default function WishCard({ item, imageUrl }: Props) {
+export default function WishCard({ item, onEdit }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const bought = item.status === "bought";
@@ -36,32 +41,31 @@ export default function WishCard({ item, imageUrl }: Props) {
   return (
     <article
       className={`card overflow-hidden transition-opacity ${
-        pending ? "opacity-50" : ""
-      } ${bought ? "opacity-60" : ""}`}
+        pending ? "opacity-50" : bought ? "opacity-75" : ""
+      }`}
     >
-      {imageUrl && (
-        // Підписані URL з Supabase — обходимося без next/image
+      {item.image_path && (
+        /*
+         * Джерело під авторизацією, тому оптимізатор next/image до нього
+         * не дотягнеться — він ходить за картинкою без куків користувача.
+         * Натомість посилання стабільне й кешується браузером назавжди.
+         */
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={imageUrl}
+          src={imageSrc(item.image_path)}
           alt={item.title}
           className="h-40 w-full object-cover"
           loading="lazy"
+          decoding="async"
         />
       )}
 
       <div className="space-y-2 p-4">
         <div className="flex items-start gap-2">
-          <h3
-            className={`mr-auto text-sm font-semibold leading-snug ${
-              bought ? "line-through decoration-muted" : ""
-            }`}
-          >
-            {item.title}
-          </h3>
+          <h3 className="mr-auto text-sm font-semibold leading-snug">{item.title}</h3>
           {item.price !== null && (
             <span className="shrink-0 text-sm font-semibold tabular-nums text-accent">
-              {formatMoney(item.price)}
+              {formatMoneyIn(item.price, item.currency)}
             </span>
           )}
         </div>
@@ -85,19 +89,38 @@ export default function WishCard({ item, imageUrl }: Props) {
             type="button"
             onClick={toggle}
             disabled={pending}
-            className="btn btn-ghost flex-1 py-1.5 text-xs"
+            aria-pressed={bought}
+            title={
+              bought
+                ? "Натисни, щоб повернути в очікування"
+                : "Натисни, коли купите"
+            }
+            className={`btn flex-1 py-1.5 text-xs ${
+              bought
+                ? "border border-ok/40 bg-ok/10 text-ok"
+                : "btn-ghost"
+            }`}
           >
             {bought ? (
-              <>
-                <RotateCcw className="h-3.5 w-3.5" />
-                Повернути
-              </>
-            ) : (
               <>
                 <Check className="h-3.5 w-3.5" />
                 Куплено
               </>
+            ) : (
+              <>
+                <Clock className="h-3.5 w-3.5" />
+                Очікується
+              </>
             )}
+          </button>
+          <button
+            type="button"
+            onClick={onEdit}
+            disabled={pending}
+            aria-label="Редагувати"
+            className="rounded-lg border border-line bg-surface-2 p-2 text-muted transition-colors hover:text-accent"
+          >
+            <Pencil className="h-3.5 w-3.5" />
           </button>
           <button
             type="button"

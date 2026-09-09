@@ -1,23 +1,49 @@
+import { Suspense } from "react";
 import AddExpenseButton from "@/components/add-expense-button";
 import CategoryBars from "@/components/category-bars";
 import ExpenseList from "@/components/expense-list";
 import ExportCsvButton from "@/components/export-csv-button";
 import FilterBar from "@/components/filter-bar";
+import { CardSkeleton, ListSkeleton } from "@/components/skeletons";
 import { byCategory, total } from "@/lib/aggregate";
 import { requireProfile } from "@/lib/auth";
 import { normalizeMonthKey } from "@/lib/dates";
+import { SHARED } from "@/lib/labels";
 import { formatMoney, formatMonthYear } from "@/lib/format";
 import { getCategories, getMonthExpenses, getProfiles } from "@/lib/queries";
 
 export const metadata = { title: "Історія — Наш бюджет" };
 
-export default async function HistoryPage(props: PageProps<"/history">) {
-  const { supabase } = await requireProfile();
-  const searchParams = await props.searchParams;
+export default function HistoryPage(props: PageProps<"/history">) {
+  return (
+    <div className="space-y-5">
+      <Suspense fallback={<HistorySkeleton />}>
+        <HistoryContent searchParams={props.searchParams} />
+      </Suspense>
+    </div>
+  );
+}
 
-  const month = normalizeMonthKey(asString(searchParams.month));
-  const categoryFilter = asString(searchParams.category);
-  const userFilter = asString(searchParams.user);
+function HistorySkeleton() {
+  return (
+    <div className="space-y-5">
+      <CardSkeleton height={40} />
+      <CardSkeleton height={120} />
+      <CardSkeleton height={100} />
+      <ListSkeleton rows={4} />
+    </div>
+  );
+}
+
+async function HistoryContent({
+  searchParams,
+}: Pick<PageProps<"/history">, "searchParams">) {
+  const { supabase } = await requireProfile();
+  const resolved = await searchParams;
+
+  const month = normalizeMonthKey(asString(resolved.month));
+  const categoryFilter = asString(resolved.category);
+  const userFilter = asString(resolved.user);
 
   const [allExpenses, categories, profiles] = await Promise.all([
     getMonthExpenses(supabase, month),
@@ -28,11 +54,11 @@ export default async function HistoryPage(props: PageProps<"/history">) {
   const expenses = allExpenses.filter(
     (expense) =>
       (!categoryFilter || expense.category_id === categoryFilter) &&
-      (!userFilter || expense.user_id === userFilter),
+      (!userFilter || (expense.attributed_to ?? SHARED.id) === userFilter),
   );
 
   return (
-    <div className="space-y-5">
+    <>
       <div className="flex items-center justify-between px-1">
         <h1 className="text-lg font-semibold">Історія</h1>
         <ExportCsvButton expenses={expenses} filename={`budget-${month}.csv`} />
@@ -62,12 +88,16 @@ export default async function HistoryPage(props: PageProps<"/history">) {
       <ExpenseList
         expenses={expenses}
         categories={categories.filter((c) => !c.is_archived)}
+        profiles={profiles}
         grouped
         emptyText="За цей місяць записів немає"
       />
 
-      <AddExpenseButton categories={categories.filter((c) => !c.is_archived)} />
-    </div>
+      <AddExpenseButton
+        categories={categories.filter((c) => !c.is_archived)}
+        profiles={profiles}
+      />
+    </>
   );
 }
 
