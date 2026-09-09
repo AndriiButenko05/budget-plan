@@ -46,8 +46,9 @@ body {
 }
 
 /* Базові елементи форм — щоб не повторювати класи в кожному полі */
+/* Ширину задає утиліта в розмітці (w-full, w-24, flex-1) — інакше
+   width: 100% тут перебивав би Tailwind і ламав вузькі поля. */
 .field {
-  width: 100%;
   border-radius: 0.75rem;
   border: 1px solid var(--border);
   background: var(--surface-2);

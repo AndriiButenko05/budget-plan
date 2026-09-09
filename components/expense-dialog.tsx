@@ -62,7 +62,7 @@ export default function ExpenseDialog({ open, onClose, categories, expense }: Pr
             required
             autoFocus
             defaultValue={expense ? String(expense.amount) : ""}
-            className="field text-2xl font-semibold tabular-nums"
+            className="field w-full text-2xl font-semibold tabular-nums"
           />
         </div>
 
@@ -111,7 +111,7 @@ export default function ExpenseDialog({ open, onClose, categories, expense }: Pr
             type="date"
             required
             defaultValue={expense?.spent_at ?? toISODate(new Date())}
-            className="field"
+            className="field w-full"
           />
         </div>
 
@@ -126,7 +126,7 @@ export default function ExpenseDialog({ open, onClose, categories, expense }: Pr
             placeholder="необовʼязково"
             autoComplete="off"
             defaultValue={expense?.note ?? ""}
-            className="field"
+            className="field w-full"
           />
         </div>
 

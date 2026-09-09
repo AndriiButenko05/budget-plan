@@ -21,7 +21,7 @@ export default function BudgetManager({ categories, budgets, month }: Props) {
   return (
     <div className="space-y-3">
       <p className="text-xs text-muted">
-        Ліміти діють на {formatMonthYear(`${month}-01`)}. Порожнє поле — без ліміту.
+        Ліміти діють на {formatMonthYear(`${month}-01`)} Порожнє поле — без ліміту.
       </p>
       <ul className="space-y-2">
         {categories.map((category) => (
@@ -79,7 +79,7 @@ function BudgetRow({
         onChange={(e) => setValue(e.target.value)}
         className="field w-24 text-right tabular-nums"
       />
-      <span className="text-xs text-muted">zł</span>
+      <span className="text-xs text-muted">PLN</span>
 
       <button
         type="submit"

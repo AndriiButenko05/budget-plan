@@ -56,7 +56,7 @@ export default function LoginForm() {
         <input
           id="email"
           type="email"
-          className="field"
+          className="field w-full"
           autoComplete="email"
           required
           value={email}
@@ -71,7 +71,7 @@ export default function LoginForm() {
         <input
           id="password"
           type="password"
-          className="field"
+          className="field w-full"
           autoComplete="current-password"
           required
           value={password}

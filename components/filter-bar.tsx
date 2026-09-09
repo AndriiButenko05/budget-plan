@@ -64,7 +64,7 @@ export default function FilterBar({ month, categories, profiles }: Props) {
       <div className="grid grid-cols-2 gap-2">
         <select
           aria-label="Категорія"
-          className="field"
+          className="field w-full"
           value={searchParams.get("category") ?? ""}
           onChange={(e) => setParam("category", e.target.value || null)}
         >
@@ -78,7 +78,7 @@ export default function FilterBar({ month, categories, profiles }: Props) {
 
         <select
           aria-label="Хто витратив"
-          className="field"
+          className="field w-full"
           value={searchParams.get("user") ?? ""}
           onChange={(e) => setParam("user", e.target.value || null)}
         >

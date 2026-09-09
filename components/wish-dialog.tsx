@@ -133,7 +133,7 @@ export default function WishDialog({ open, onClose, defaultOwner, labels }: Prop
             required
             autoFocus
             placeholder="Навушники, поїздка, сукня…"
-            className="field"
+            className="field w-full"
           />
         </div>
 
@@ -148,7 +148,7 @@ export default function WishDialog({ open, onClose, defaultOwner, labels }: Prop
               type="text"
               inputMode="url"
               placeholder="необовʼязково"
-              className="field"
+              className="field w-full"
             />
           </div>
           <div className="sm:w-40">
@@ -168,7 +168,7 @@ export default function WishDialog({ open, onClose, defaultOwner, labels }: Prop
                 name="currency"
                 aria-label="Валюта"
                 defaultValue="PLN"
-                className="field w-20 px-1.5"
+                className="field w-24 shrink-0 px-2"
               >
                 <option value="PLN">PLN</option>
                 <option value="UAH">UAH</option>
@@ -186,7 +186,7 @@ export default function WishDialog({ open, onClose, defaultOwner, labels }: Prop
             name="note"
             rows={2}
             placeholder="колір, розмір, чому хочеться…"
-            className="field resize-none"
+            className="field w-full resize-none"
           />
         </div>
 

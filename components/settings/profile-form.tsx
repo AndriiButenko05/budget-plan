@@ -21,7 +21,7 @@ export default function ProfileForm({ profile }: { profile: Profile }) {
           type="text"
           required
           defaultValue={profile.name}
-          className="field"
+          className="field w-full"
         />
       </div>
 
