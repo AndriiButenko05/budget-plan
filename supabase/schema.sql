@@ -133,9 +133,15 @@ create policy expenses_delete on public.expenses
 -- ============================================================
 --  Storage: приватний бакет для фото вішліста
 -- ============================================================
-insert into storage.buckets (id, name, public)
-values ('wishlist', 'wishlist', false)
-on conflict (id) do nothing;
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'wishlist', 'wishlist', false, 5242880,
+  array['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif']
+)
+on conflict (id) do update set
+  public = false,
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
 
 drop policy if exists wishlist_objects_all on storage.objects;
 create policy wishlist_objects_all on storage.objects

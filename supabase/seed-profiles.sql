@@ -1,16 +1,23 @@
 -- ============================================================
---  Крок 2: після створення двох користувачів у Authentication → Users
---  впиши їхні email нижче та запусти цей файл.
---  Рядок у profiles = дозвіл на доступ до сайту.
+--  Крок 2: видати доступ створеним користувачам.
+--  Запускати ПІСЛЯ schema.sql і ПІСЛЯ створення юзерів
+--  у Authentication → Users.
+--
+--  Замінювати нічого не треба — запит сам візьме всіх, кого ти
+--  створив, і зробить їм профілі. Імена та кольори потім легко
+--  змінити на сайті: Налаштування → Мій профіль.
 -- ============================================================
 
 insert into public.profiles (id, name, color)
-select id, 'Andrii', '#38bdf8' from auth.users where email = 'ЗАМІНИ-НА-ТВІЙ@email.com'
-on conflict (id) do update set name = excluded.name, color = excluded.color;
+select
+  u.id,
+  split_part(u.email, '@', 1),  -- імʼя з email, потім переназвеш
+  '#a78bfa'
+from auth.users u
+on conflict (id) do nothing;
 
-insert into public.profiles (id, name, color)
-select id, 'Ім''я дівчини', '#f472b6' from auth.users where email = 'ЗАМІНИ-НА-ЇЇ@email.com'
-on conflict (id) do update set name = excluded.name, color = excluded.color;
-
--- Перевірка: має бути рівно 2 рядки
-select p.name, p.color, u.email from public.profiles p join auth.users u on u.id = p.id;
+-- Перевірка: має бути рівно два рядки — ти і вона.
+select u.email, p.name, p.color
+from public.profiles p
+join auth.users u on u.id = p.id
+order by p.created_at;

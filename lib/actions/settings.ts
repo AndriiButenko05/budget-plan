@@ -19,13 +19,13 @@ export async function saveCategory(
 ): Promise<ActionResult> {
   const { supabase } = await requireProfile();
 
-  const name = text(formData.get("name"));
+  const name = text(formData.get("name"), 40);
   if (!name) return { error: "Назва не може бути порожньою" };
 
   const rawColor = String(formData.get("color") ?? "");
   const color = HEX_COLOR.test(rawColor) ? rawColor : "#94a3b8";
-  const icon = text(formData.get("icon"))?.slice(0, 4) ?? "📦";
-  const id = text(formData.get("id"));
+  const icon = text(formData.get("icon"), 4) ?? "📦";
+  const id = text(formData.get("id"), 40);
 
   const { error } = id
     ? await supabase.from("categories").update({ name, icon, color }).eq("id", id)
@@ -101,7 +101,7 @@ export async function updateProfile(
 ): Promise<ActionResult> {
   const { supabase, profile } = await requireProfile();
 
-  const name = text(formData.get("name"));
+  const name = text(formData.get("name"), 40);
   if (!name) return { error: "Введи імʼя" };
 
   const rawColor = String(formData.get("color") ?? "");

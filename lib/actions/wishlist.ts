@@ -12,9 +12,19 @@ function owner(raw: FormDataEntryValue | null): WishOwner | null {
   return value === "her" || value === "him" ? value : null;
 }
 
+/**
+ * Шлях до фото приходить з браузера, тому приймаємо тільки те, що сам
+ * і згенерував: «uuid.розширення». Інакше в запис можна було б підставити
+ * будь-який інший обʼєкт бакета.
+ */
+function safeImagePath(raw: FormDataEntryValue | null) {
+  const value = text(raw, 80);
+  return value && /^[0-9a-f-]{36}\.[a-z0-9]{2,5}$/i.test(value) ? value : null;
+}
+
 /** Дозволяємо лише http(s) — щоб у картку не потрапив javascript: */
 function safeUrl(raw: FormDataEntryValue | null) {
-  const value = text(raw);
+  const value = text(raw, 600);
   if (!value) return null;
   try {
     const parsed = new URL(value.startsWith("http") ? value : `https://${value}`);
@@ -35,7 +45,7 @@ export async function addWishItem(
   const forWhom = owner(formData.get("for_whom"));
   if (!forWhom) return { error: "Обери, для кого це" };
 
-  const title = text(formData.get("title"));
+  const title = text(formData.get("title"), 200);
   if (!title) return { error: "Додай назву" };
 
   const rawPrice = String(formData.get("price") ?? "").trim();
@@ -45,9 +55,9 @@ export async function addWishItem(
     for_whom: forWhom,
     title,
     url: safeUrl(formData.get("url")),
-    note: text(formData.get("note")),
+    note: text(formData.get("note"), 1000),
     price: rawPrice ? parseAmount(rawPrice) : null,
-    image_path: text(formData.get("image_path")),
+    image_path: safeImagePath(formData.get("image_path")),
   });
 
   if (error) return { error: "Не вдалося зберегти" };

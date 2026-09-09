@@ -33,7 +33,7 @@ export async function addExpense(
     category_id: categoryId,
     amount,
     spent_at: spentAt,
-    note: text(formData.get("note")),
+    note: text(formData.get("note"), 300),
   });
 
   if (error) return { error: "Не вдалося зберегти витрату" };
@@ -66,7 +66,7 @@ export async function updateExpense(
       category_id: categoryId,
       amount,
       spent_at: rawDate,
-      note: text(formData.get("note")),
+      note: text(formData.get("note"), 300),
     })
     .eq("id", id);
 

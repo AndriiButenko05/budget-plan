@@ -9,8 +9,12 @@ export function parseAmount(raw: FormDataEntryValue | null) {
   return Math.round(value * 100) / 100;
 }
 
-/** Порожній рядок → null, щоб не писати в базу пусті нотатки. */
-export function text(raw: FormDataEntryValue | null) {
-  const value = String(raw ?? "").trim();
+/**
+ * Порожній рядок → null, щоб не писати в базу пусті нотатки.
+ * maxLength обрізає надто довгий ввід — інакше в базу можна залити
+ * рядок будь-якого розміру.
+ */
+export function text(raw: FormDataEntryValue | null, maxLength = 500) {
+  const value = String(raw ?? "").trim().slice(0, maxLength);
   return value.length > 0 ? value : null;
 }
