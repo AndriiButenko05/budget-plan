@@ -17,6 +17,7 @@ type Props = {
 export default function WishlistBoard({ items, imageUrls }: Props) {
   const [tab, setTab] = useState<WishOwner>("her");
   const [dialogOwner, setDialogOwner] = useState<WishOwner | null>(null);
+  const [editingItem, setEditingItem] = useState<WishlistItem | null>(null);
 
   return (
     <>
@@ -88,6 +89,7 @@ export default function WishlistBoard({ items, imageUrls }: Props) {
                       key={item.id}
                       item={item}
                       imageUrl={item.image_path ? (imageUrls[item.image_path] ?? null) : null}
+                      onEdit={() => setEditingItem(item)}
                     />
                   ))}
                 </div>
@@ -103,6 +105,19 @@ export default function WishlistBoard({ items, imageUrls }: Props) {
         onClose={() => setDialogOwner(null)}
         defaultOwner={dialogOwner ?? "her"}
       />
+
+      {editingItem && (
+        <WishDialog
+          key={editingItem.id}
+          open
+          onClose={() => setEditingItem(null)}
+          defaultOwner={editingItem.for_whom}
+          item={editingItem}
+          imageUrl={
+            editingItem.image_path ? (imageUrls[editingItem.image_path] ?? null) : null
+          }
+        />
+      )}
     </>
   );
 }
