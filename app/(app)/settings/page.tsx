@@ -1,6 +1,7 @@
 import BudgetManager from "@/components/settings/budget-manager";
 import CategoryManager from "@/components/settings/category-manager";
 import ProfileForm from "@/components/settings/profile-form";
+import SignOutButton from "@/components/sign-out-button";
 import { requireProfile } from "@/lib/auth";
 import { currentMonthKey } from "@/lib/dates";
 import { getBudgets, getCategories, getProfiles } from "@/lib/queries";
@@ -59,6 +60,10 @@ export default async function SettingsPage() {
         <h2 className="mb-4 text-sm font-semibold">Ліміти бюджету</h2>
         <BudgetManager categories={activeCategories} budgets={budgets} month={month} />
       </section>
+
+      <div className="pt-1">
+        <SignOutButton />
+      </div>
     </div>
   );
 }

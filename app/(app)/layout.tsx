@@ -1,5 +1,4 @@
 import { DesktopNav, MobileNav } from "@/components/nav";
-import SignOutButton from "@/components/sign-out-button";
 import { requireProfile } from "@/lib/auth";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
@@ -17,7 +16,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
           <DesktopNav />
 
           <span
-            className="hidden rounded-full px-2.5 py-1 text-xs font-medium sm:inline"
+            className="rounded-full px-2.5 py-1 text-xs font-medium"
             style={{
               color: profile.color,
               background: `color-mix(in srgb, ${profile.color} 16%, transparent)`,
@@ -25,7 +24,6 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
           >
             {profile.name}
           </span>
-          <SignOutButton />
         </div>
       </header>
 
