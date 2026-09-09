@@ -6,11 +6,14 @@ import { ImagePlus, Loader2, X } from "lucide-react";
 import Modal from "@/components/modal";
 import { addWishItem, updateWishItem } from "@/lib/actions/wishlist";
 import { idle } from "@/lib/actions/shared";
+import { downscaleImage } from "@/lib/image";
 import { OWNER_LABELS } from "@/lib/labels";
 import { createClient } from "@/lib/supabase/client";
 import type { WishOwner, WishlistItem } from "@/lib/types";
 
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+/** Обмеження бакета — 5 МБ, але великі фото ми стискаємо перед відправкою. */
+const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+const MAX_PICK_BYTES = 30 * 1024 * 1024;
 
 type Props = {
   open: boolean;
@@ -54,8 +57,8 @@ export default function WishDialog({
       event.target.value = "";
       return;
     }
-    if (file.size > MAX_IMAGE_BYTES) {
-      setError("Фото завелике — максимум 5 МБ");
+    if (file.size > MAX_PICK_BYTES) {
+      setError("Фото завелике — максимум 30 МБ");
       event.target.value = "";
       return;
     }
@@ -80,8 +83,16 @@ export default function WishDialog({
 
     let imagePath = keptPath;
 
-    const file = fileRef.current?.files?.[0];
-    if (file) {
+    const picked = fileRef.current?.files?.[0];
+    if (picked) {
+      const file = await downscaleImage(picked);
+
+      if (file.size > MAX_UPLOAD_BYTES) {
+        setError("Фото не вдалося стиснути — спробуй інше");
+        setBusy(false);
+        return;
+      }
+
       const extension = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
       const path = `${crypto.randomUUID()}.${extension}`;
       const { error: uploadError } = await createClient()

@@ -47,6 +47,8 @@ create table if not exists public.categories (
 create table if not exists public.expenses (
   id          uuid primary key default gen_random_uuid(),
   user_id     uuid not null references public.profiles(id) on delete restrict,
+  -- на кого записана витрата; NULL = спільна
+  attributed_to uuid references public.profiles(id) on delete restrict,
   category_id uuid not null references public.categories(id) on delete restrict,
   amount      numeric(12,2) not null check (amount > 0),
   spent_at    date not null default current_date,
@@ -56,6 +58,7 @@ create table if not exists public.expenses (
 create index if not exists expenses_spent_at_idx    on public.expenses (spent_at desc);
 create index if not exists expenses_category_id_idx on public.expenses (category_id);
 create index if not exists expenses_user_id_idx     on public.expenses (user_id);
+create index if not exists expenses_attributed_to_idx on public.expenses (attributed_to);
 
 -- ---------- Ліміти бюджету (місяць = 1-е число) ----------
 create table if not exists public.budgets (

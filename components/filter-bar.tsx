@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { currentMonthKey, shiftMonth } from "@/lib/dates";
+import { SHARED } from "@/lib/labels";
 import type { Category, Profile } from "@/lib/types";
 
 type Props = {
@@ -77,17 +78,18 @@ export default function FilterBar({ month, categories, profiles }: Props) {
         </select>
 
         <select
-          aria-label="Хто витратив"
+          aria-label="На кого записано"
           className="field w-full"
           value={searchParams.get("user") ?? ""}
           onChange={(e) => setParam("user", e.target.value || null)}
         >
-          <option value="">Ми обоє</option>
+          <option value="">Усі витрати</option>
           {profiles.map((profile) => (
             <option key={profile.id} value={profile.id}>
               {profile.name}
             </option>
           ))}
+          <option value={SHARED.id}>{SHARED.name}</option>
         </select>
       </div>
     </div>

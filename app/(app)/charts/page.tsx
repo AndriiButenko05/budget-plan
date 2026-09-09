@@ -1,8 +1,17 @@
-import CategoryPie from "@/components/charts/category-pie";
-import CumulativeLine from "@/components/charts/cumulative-line";
-import MonthsBar from "@/components/charts/months-bar";
-import UserCompareBar from "@/components/charts/user-compare-bar";
-import { byCategory, byMonth, categoryByUser, cumulativeByDay, total } from "@/lib/aggregate";
+import {
+  CategoryPie,
+  CumulativeLine,
+  MonthsBar,
+  OwnerCompareBar,
+} from "@/components/charts/lazy";
+import {
+  byCategory,
+  byMonth,
+  categoryByOwner,
+  cumulativeByDay,
+  ownerSeries,
+  total,
+} from "@/lib/aggregate";
 import { requireProfile } from "@/lib/auth";
 import {
   currentMonthKey,
@@ -30,7 +39,9 @@ export default async function ChartsPage() {
   const [, rangeEnd] = monthRange(month);
 
   const [allExpenses, categories, profiles] = await Promise.all([
-    getExpensesBetween(supabase, rangeStart, rangeEnd),
+    // Підписи категорій і людей беремо окремими списками, тож
+    // джойни на кожен рядок за рік тут ні до чого.
+    getExpensesBetween(supabase, rangeStart, rangeEnd, { lean: true }),
     getCategories(supabase, { includeArchived: true }),
     getProfiles(supabase),
   ]);
@@ -83,9 +94,9 @@ export default async function ChartsPage() {
 
       <section className="card p-5">
         <h2 className="mb-4 text-sm font-semibold">Хто скільки витратив</h2>
-        <UserCompareBar
-          data={categoryByUser(thisMonth, categories, profiles)}
-          profiles={profiles}
+        <OwnerCompareBar
+          data={categoryByOwner(thisMonth, categories, profiles)}
+          series={ownerSeries(profiles)}
         />
       </section>
     </div>

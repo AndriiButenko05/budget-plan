@@ -20,7 +20,10 @@ export type Category = {
 
 export type Expense = {
   id: string;
+  /** Хто вніс запис. */
   user_id: string;
+  /** На кого записана витрата; null — спільна. */
+  attributed_to: string | null;
   category_id: string;
   amount: number;
   spent_at: string;
@@ -28,10 +31,10 @@ export type Expense = {
   created_at: string;
 };
 
-/** Витрата з підтягнутими назвами категорії та автора. */
+/** Витрата з підтягнутою категорією та тим, на кого вона записана. */
 export type ExpenseRow = Expense & {
   category: Pick<Category, "id" | "name" | "icon" | "color"> | null;
-  author: Pick<Profile, "id" | "name" | "color"> | null;
+  owner: Pick<Profile, "id" | "name" | "color"> | null;
 };
 
 export type Budget = {

@@ -7,17 +7,25 @@ import Modal from "@/components/modal";
 import { addExpense, updateExpense } from "@/lib/actions/expenses";
 import { idle } from "@/lib/actions/shared";
 import { toISODate } from "@/lib/dates";
-import type { Category, ExpenseRow } from "@/lib/types";
+import { SHARED } from "@/lib/labels";
+import type { Category, ExpenseRow, Profile } from "@/lib/types";
 
 type Props = {
   open: boolean;
   onClose: () => void;
   categories: Category[];
+  profiles: Profile[];
   /** Передано — режим редагування, інакше створення. */
   expense?: ExpenseRow;
 };
 
-export default function ExpenseDialog({ open, onClose, categories, expense }: Props) {
+export default function ExpenseDialog({
+  open,
+  onClose,
+  categories,
+  profiles,
+  expense,
+}: Props) {
   const router = useRouter();
   const editing = Boolean(expense);
   const [state, formAction, pending] = useActionState(
@@ -30,6 +38,8 @@ export default function ExpenseDialog({ open, onClose, categories, expense }: Pr
   const [categoryId, setCategoryId] = useState(
     expense?.category_id ?? categories[0]?.id ?? "",
   );
+  /** Порожній рядок — спільна витрата. */
+  const [ownerId, setOwnerId] = useState(expense?.attributed_to ?? "");
 
   useEffect(() => {
     if (state.ok) {
@@ -47,6 +57,7 @@ export default function ExpenseDialog({ open, onClose, categories, expense }: Pr
       <form action={formAction} className="space-y-4">
         {expense && <input type="hidden" name="id" value={expense.id} />}
         <input type="hidden" name="category_id" value={categoryId} />
+        <input type="hidden" name="attributed_to" value={ownerId} />
 
         <div>
           <label htmlFor="amount" className="mb-1.5 block text-xs font-medium text-muted">
@@ -64,6 +75,39 @@ export default function ExpenseDialog({ open, onClose, categories, expense }: Pr
             defaultValue={expense ? String(expense.amount) : ""}
             className="field w-full text-2xl font-semibold tabular-nums"
           />
+        </div>
+
+        <div>
+          <span className="mb-1.5 block text-xs font-medium text-muted">На кого</span>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              ...profiles.map((p) => ({ id: p.id, name: p.name, color: p.color })),
+              { id: "", name: SHARED.name, color: SHARED.color },
+            ].map((owner) => {
+              const active = owner.id === ownerId;
+              return (
+                <button
+                  key={owner.id || "shared"}
+                  type="button"
+                  onClick={() => setOwnerId(owner.id)}
+                  aria-pressed={active}
+                  className={`truncate rounded-xl border py-2 text-xs transition-colors ${
+                    active ? "text-text" : "border-line bg-surface-2 text-muted"
+                  }`}
+                  style={
+                    active
+                      ? {
+                          borderColor: owner.color,
+                          background: `color-mix(in srgb, ${owner.color} 22%, transparent)`,
+                        }
+                      : undefined
+                  }
+                >
+                  {owner.name}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div>

@@ -6,6 +6,7 @@ import FilterBar from "@/components/filter-bar";
 import { byCategory, total } from "@/lib/aggregate";
 import { requireProfile } from "@/lib/auth";
 import { normalizeMonthKey } from "@/lib/dates";
+import { SHARED } from "@/lib/labels";
 import { formatMoney, formatMonthYear } from "@/lib/format";
 import { getCategories, getMonthExpenses, getProfiles } from "@/lib/queries";
 
@@ -28,7 +29,7 @@ export default async function HistoryPage(props: PageProps<"/history">) {
   const expenses = allExpenses.filter(
     (expense) =>
       (!categoryFilter || expense.category_id === categoryFilter) &&
-      (!userFilter || expense.user_id === userFilter),
+      (!userFilter || (expense.attributed_to ?? SHARED.id) === userFilter),
   );
 
   return (
@@ -62,11 +63,15 @@ export default async function HistoryPage(props: PageProps<"/history">) {
       <ExpenseList
         expenses={expenses}
         categories={categories.filter((c) => !c.is_archived)}
+        profiles={profiles}
         grouped
         emptyText="За цей місяць записів немає"
       />
 
-      <AddExpenseButton categories={categories.filter((c) => !c.is_archived)} />
+      <AddExpenseButton
+        categories={categories.filter((c) => !c.is_archived)}
+        profiles={profiles}
+      />
     </div>
   );
 }

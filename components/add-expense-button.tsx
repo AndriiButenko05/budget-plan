@@ -3,14 +3,16 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import ExpenseDialog from "@/components/expense-dialog";
-import type { Category } from "@/lib/types";
+import type { Category, Profile } from "@/lib/types";
 
 /** Кругла кнопка над мобільним меню + звичайна кнопка на десктопі. */
 export default function AddExpenseButton({
   categories,
+  profiles,
   variant = "fab",
 }: {
   categories: Category[];
+  profiles: Profile[];
   variant?: "fab" | "inline";
 }) {
   const [open, setOpen] = useState(false);
@@ -37,6 +39,7 @@ export default function AddExpenseButton({
         open={open}
         onClose={() => setOpen(false)}
         categories={categories}
+        profiles={profiles}
       />
     </>
   );
