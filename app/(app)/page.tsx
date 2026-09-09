@@ -1,7 +1,9 @@
+import { Suspense } from "react";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import AddExpenseButton from "@/components/add-expense-button";
 import CategoryBars from "@/components/category-bars";
 import ExpenseList from "@/components/expense-list";
+import { CardSkeleton, ListSkeleton } from "@/components/skeletons";
 import { byCategory, byOwner, total } from "@/lib/aggregate";
 import { requireProfile } from "@/lib/auth";
 import { currentMonthKey, shiftMonth } from "@/lib/dates";
@@ -14,7 +16,25 @@ import {
   getProfiles,
 } from "@/lib/queries";
 
-export default async function DashboardPage() {
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<DashboardSkeleton />}>
+      <DashboardContent />
+    </Suspense>
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-5">
+      <CardSkeleton height={190} />
+      <CardSkeleton height={200} />
+      <ListSkeleton rows={4} />
+    </div>
+  );
+}
+
+async function DashboardContent() {
   const { supabase } = await requireProfile();
 
   const month = currentMonthKey();

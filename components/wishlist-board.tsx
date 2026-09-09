@@ -9,12 +9,10 @@ import type { WishOwner, WishlistItem } from "@/lib/types";
 
 type Props = {
   items: WishlistItem[];
-  /** image_path → підписаний URL. */
-  imageUrls: Record<string, string>;
 };
 
 /** Дві колонки на десктопі, таби на телефоні. */
-export default function WishlistBoard({ items, imageUrls }: Props) {
+export default function WishlistBoard({ items }: Props) {
   const [tab, setTab] = useState<WishOwner>("her");
   const [dialogOwner, setDialogOwner] = useState<WishOwner | null>(null);
   const [editingItem, setEditingItem] = useState<WishlistItem | null>(null);
@@ -88,7 +86,6 @@ export default function WishlistBoard({ items, imageUrls }: Props) {
                     <WishCard
                       key={item.id}
                       item={item}
-                      imageUrl={item.image_path ? (imageUrls[item.image_path] ?? null) : null}
                       onEdit={() => setEditingItem(item)}
                     />
                   ))}
@@ -113,9 +110,6 @@ export default function WishlistBoard({ items, imageUrls }: Props) {
           onClose={() => setEditingItem(null)}
           defaultOwner={editingItem.for_whom}
           item={editingItem}
-          imageUrl={
-            editingItem.image_path ? (imageUrls[editingItem.image_path] ?? null) : null
-          }
         />
       )}
     </>

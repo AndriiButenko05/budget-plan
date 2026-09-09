@@ -5,12 +5,11 @@ import { useRouter } from "next/navigation";
 import { Check, Clock, ExternalLink, Pencil, Trash2 } from "lucide-react";
 import { deleteWishItem, toggleWishStatus } from "@/lib/actions/wishlist";
 import { formatMoneyIn } from "@/lib/format";
+import { imageSrc } from "@/lib/image-src";
 import type { WishlistItem } from "@/lib/types";
 
 type Props = {
   item: WishlistItem;
-  /** Підписане посилання на фото — живе годину, генерується на сервері. */
-  imageUrl: string | null;
   /**
    * Форму редагування відкриває батько, а не карточка: у .card є
    * backdrop-filter, через який position: fixed усередині рахується
@@ -19,7 +18,7 @@ type Props = {
   onEdit: () => void;
 };
 
-export default function WishCard({ item, imageUrl, onEdit }: Props) {
+export default function WishCard({ item, onEdit }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const bought = item.status === "bought";
@@ -45,14 +44,19 @@ export default function WishCard({ item, imageUrl, onEdit }: Props) {
         pending ? "opacity-50" : bought ? "opacity-75" : ""
       }`}
     >
-      {imageUrl && (
-        // Підписані URL з Supabase — обходимося без next/image
+      {item.image_path && (
+        /*
+         * Джерело під авторизацією, тому оптимізатор next/image до нього
+         * не дотягнеться — він ходить за картинкою без куків користувача.
+         * Натомість посилання стабільне й кешується браузером назавжди.
+         */
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={imageUrl}
+          src={imageSrc(item.image_path)}
           alt={item.title}
           className="h-40 w-full object-cover"
           loading="lazy"
+          decoding="async"
         />
       )}
 

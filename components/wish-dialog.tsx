@@ -7,6 +7,7 @@ import Modal from "@/components/modal";
 import { addWishItem, updateWishItem } from "@/lib/actions/wishlist";
 import { idle } from "@/lib/actions/shared";
 import { downscaleImage } from "@/lib/image";
+import { imageSrc } from "@/lib/image-src";
 import { OWNER_LABELS } from "@/lib/labels";
 import { createClient } from "@/lib/supabase/client";
 import type { WishOwner, WishlistItem } from "@/lib/types";
@@ -21,8 +22,6 @@ type Props = {
   defaultOwner: WishOwner;
   /** Передано — режим редагування, інакше створення. */
   item?: WishlistItem;
-  /** Підписане посилання на наявне фото, щоб показати його в формі. */
-  imageUrl?: string | null;
 };
 
 export default function WishDialog({
@@ -30,7 +29,6 @@ export default function WishDialog({
   onClose,
   defaultOwner,
   item,
-  imageUrl,
 }: Props) {
   const router = useRouter();
   const editing = Boolean(item);
@@ -39,7 +37,7 @@ export default function WishDialog({
   const [forWhom, setForWhom] = useState<WishOwner>(item?.for_whom ?? defaultOwner);
   const [currency, setCurrency] = useState(item?.currency ?? "PLN");
   const [preview, setPreview] = useState<string | null>(
-    item?.image_path ? (imageUrl ?? null) : null,
+    item?.image_path ? imageSrc(item.image_path) : null,
   );
   /** Шлях, який піде в базу, якщо нового файлу не виберуть. */
   const [keptPath, setKeptPath] = useState(item?.image_path ?? "");
@@ -248,7 +246,7 @@ export default function WishDialog({
           />
           {preview ? (
             <div className="relative overflow-hidden rounded-xl border border-line">
-              {/* Локальний blob або підписаний URL — next/image тут не потрібен */}
+              {/* Локальний blob або наш маршрут — next/image тут не застосовний */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={preview} alt="" className="max-h-48 w-full object-cover" />
               <div className="absolute right-2 top-2 flex gap-1.5">

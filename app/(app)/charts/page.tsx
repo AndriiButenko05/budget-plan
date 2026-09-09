@@ -1,9 +1,11 @@
+import { Suspense } from "react";
 import {
   CategoryPie,
   CumulativeLine,
   MonthsBar,
   OwnerCompareBar,
 } from "@/components/charts/lazy";
+import { CardSkeleton } from "@/components/skeletons";
 import {
   byCategory,
   byMonth,
@@ -28,7 +30,28 @@ export const metadata = { title: "Графіки — Наш бюджет" };
 
 const MONTHS_ON_CHART = 12;
 
-export default async function ChartsPage() {
+export default function ChartsPage() {
+  return (
+    <div className="space-y-5">
+      <Suspense fallback={<ChartsSkeleton />}>
+        <ChartsContent />
+      </Suspense>
+    </div>
+  );
+}
+
+function ChartsSkeleton() {
+  return (
+    <div className="space-y-5">
+      <CardSkeleton height={40} />
+      <CardSkeleton height={330} />
+      <CardSkeleton height={330} />
+      <CardSkeleton height={340} />
+    </div>
+  );
+}
+
+async function ChartsContent() {
   const { supabase } = await requireProfile();
 
   const month = currentMonthKey();
@@ -63,7 +86,7 @@ export default async function ChartsPage() {
   );
 
   return (
-    <div className="space-y-5">
+    <>
       <div className="flex items-baseline justify-between px-1">
         <h1 className="text-lg font-semibold">Графіки</h1>
         <p className="text-xs text-muted">{formatMonthYear(`${month}-01`)}</p>
@@ -99,6 +122,6 @@ export default async function ChartsPage() {
           series={ownerSeries(profiles)}
         />
       </section>
-    </div>
+    </>
   );
 }

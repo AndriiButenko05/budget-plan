@@ -6,5 +6,9 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|icons/|.*\.(?:svg|png|jpg|jpeg|webp|gif|ico)$).*)"],
+  // api/wishlist-image перевіряє доступ сам, тож друга перевірка сесії
+  // на кожен запит фото була б марною тратою round-trip до Supabase.
+  matcher: [
+    "/((?!_next/static|_next/image|api/wishlist-image|favicon.ico|manifest.webmanifest|icons/|.*\.(?:svg|png|jpg|jpeg|webp|gif|ico)$).*)",
+  ],
 };
