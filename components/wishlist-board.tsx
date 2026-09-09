@@ -4,9 +4,8 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import WishCard from "@/components/wish-card";
 import WishDialog from "@/components/wish-dialog";
+import { OWNER_LABELS } from "@/lib/labels";
 import type { WishOwner, WishlistItem } from "@/lib/types";
-
-const LABELS: Record<WishOwner, string> = { her: "Для неї", him: "Для нього" };
 
 type Props = {
   items: WishlistItem[];
@@ -43,7 +42,7 @@ export default function WishlistBoard({ items, imageUrls }: Props) {
                   : undefined
               }
             >
-              {LABELS[owner]}
+              {OWNER_LABELS[owner]}
             </button>
           );
         })}
@@ -66,7 +65,7 @@ export default function WishlistBoard({ items, imageUrls }: Props) {
                   aria-hidden
                 />
                 <h2 className="mr-auto text-sm font-semibold" style={{ color }}>
-                  {LABELS[owner]}
+                  {OWNER_LABELS[owner]}
                 </h2>
                 <button
                   type="button"
@@ -103,7 +102,6 @@ export default function WishlistBoard({ items, imageUrls }: Props) {
         open={dialogOwner !== null}
         onClose={() => setDialogOwner(null)}
         defaultOwner={dialogOwner ?? "her"}
-        labels={LABELS}
       />
     </>
   );

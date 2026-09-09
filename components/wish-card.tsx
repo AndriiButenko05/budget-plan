@@ -1,8 +1,9 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Clock, ExternalLink, Trash2 } from "lucide-react";
+import { Check, Clock, ExternalLink, Pencil, Trash2 } from "lucide-react";
+import WishDialog from "@/components/wish-dialog";
 import { deleteWishItem, toggleWishStatus } from "@/lib/actions/wishlist";
 import { formatMoneyIn } from "@/lib/format";
 import type { WishlistItem } from "@/lib/types";
@@ -16,6 +17,7 @@ type Props = {
 export default function WishCard({ item, imageUrl }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [editing, setEditing] = useState(false);
   const bought = item.status === "bought";
 
   function toggle() {
@@ -105,6 +107,15 @@ export default function WishCard({ item, imageUrl }: Props) {
           </button>
           <button
             type="button"
+            onClick={() => setEditing(true)}
+            disabled={pending}
+            aria-label="Редагувати"
+            className="rounded-lg border border-line bg-surface-2 p-2 text-muted transition-colors hover:text-accent"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
             onClick={remove}
             disabled={pending}
             aria-label="Видалити"
@@ -114,6 +125,16 @@ export default function WishCard({ item, imageUrl }: Props) {
           </button>
         </div>
       </div>
+
+      {editing && (
+        <WishDialog
+          open
+          onClose={() => setEditing(false)}
+          defaultOwner={item.for_whom}
+          item={item}
+          imageUrl={imageUrl}
+        />
+      )}
     </article>
   );
 }

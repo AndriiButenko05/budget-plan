@@ -1,42 +1,35 @@
 import type { Currency } from "@/lib/types";
 
-const money = new Intl.NumberFormat("uk-UA", {
-  style: "currency",
-  currency: "PLN",
+/**
+ * Символ валюти задаємо самі, а не через style: "currency".
+ * Node та Chrome мають різні версії ICU: для UAH перший дає «₴»,
+ * другий — «грн», і React падав з Hydration failed на кожній ціні.
+ */
+const CURRENCY_SUFFIX: Record<Currency, string> = {
+  PLN: "PLN",
+  UAH: "₴",
+};
+
+const decimal = new Intl.NumberFormat("uk-UA", {
+  minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
 
-const moneyShort = new Intl.NumberFormat("uk-UA", {
-  style: "currency",
-  currency: "PLN",
-  maximumFractionDigits: 0,
-});
+const whole = new Intl.NumberFormat("uk-UA", { maximumFractionDigits: 0 });
 
 /** 1234.5 → «1 234,50 PLN» */
 export function formatMoney(value: number) {
-  return money.format(value);
+  return `${decimal.format(value)} ${CURRENCY_SUFFIX.PLN}`;
 }
 
-const byCurrency: Record<Currency, Intl.NumberFormat> = {
-  PLN: money,
-  UAH: new Intl.NumberFormat("uk-UA", {
-    style: "currency",
-    currency: "UAH",
-    maximumFractionDigits: 2,
-  }),
-};
-
-/**
- * Те саме, але у валюті, вказаній для конкретної позиції вішліста.
- * Невідома валюта (наприклад, старий запис без цього поля) → PLN.
- */
-export function formatMoneyIn(value: number, currency: Currency) {
-  return (byCurrency[currency] ?? money).format(value);
-}
-
-/** Для осей графіків: 1234.5 → «1 235 zł» */
+/** Для осей графіків: 1234.5 → «1 235 PLN» */
 export function formatMoneyShort(value: number) {
-  return moneyShort.format(value);
+  return `${whole.format(value)} ${CURRENCY_SUFFIX.PLN}`;
+}
+
+/** Те саме у валюті конкретної позиції вішліста. Невідома → PLN. */
+export function formatMoneyIn(value: number, currency: Currency) {
+  return `${decimal.format(value)} ${CURRENCY_SUFFIX[currency] ?? CURRENCY_SUFFIX.PLN}`;
 }
 
 const dayMonth = new Intl.DateTimeFormat("uk-UA", { day: "numeric", month: "long" });

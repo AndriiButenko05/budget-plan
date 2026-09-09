@@ -4,10 +4,11 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ImagePlus, Loader2, X } from "lucide-react";
 import Modal from "@/components/modal";
-import { addWishItem } from "@/lib/actions/wishlist";
+import { addWishItem, updateWishItem } from "@/lib/actions/wishlist";
 import { idle } from "@/lib/actions/shared";
+import { OWNER_LABELS } from "@/lib/labels";
 import { createClient } from "@/lib/supabase/client";
-import type { WishOwner } from "@/lib/types";
+import type { WishOwner, WishlistItem } from "@/lib/types";
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
@@ -15,14 +16,30 @@ type Props = {
   open: boolean;
   onClose: () => void;
   defaultOwner: WishOwner;
-  labels: Record<WishOwner, string>;
+  /** Передано — режим редагування, інакше створення. */
+  item?: WishlistItem;
+  /** Підписане посилання на наявне фото, щоб показати його в формі. */
+  imageUrl?: string | null;
 };
 
-export default function WishDialog({ open, onClose, defaultOwner, labels }: Props) {
+export default function WishDialog({
+  open,
+  onClose,
+  defaultOwner,
+  item,
+  imageUrl,
+}: Props) {
   const router = useRouter();
+  const editing = Boolean(item);
   const fileRef = useRef<HTMLInputElement>(null);
-  const [forWhom, setForWhom] = useState<WishOwner>(defaultOwner);
-  const [preview, setPreview] = useState<string | null>(null);
+
+  const [forWhom, setForWhom] = useState<WishOwner>(item?.for_whom ?? defaultOwner);
+  const [currency, setCurrency] = useState(item?.currency ?? "PLN");
+  const [preview, setPreview] = useState<string | null>(
+    item?.image_path ? (imageUrl ?? null) : null,
+  );
+  /** Шлях, який піде в базу, якщо нового файлу не виберуть. */
+  const [keptPath, setKeptPath] = useState(item?.image_path ?? "");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -30,10 +47,8 @@ export default function WishDialog({ open, onClose, defaultOwner, labels }: Prop
     const file = event.target.files?.[0];
     setError(null);
 
-    if (!file) {
-      setPreview(null);
-      return;
-    }
+    if (!file) return;
+
     if (!file.type.startsWith("image/")) {
       setError("Це не зображення");
       event.target.value = "";
@@ -51,6 +66,7 @@ export default function WishDialog({ open, onClose, defaultOwner, labels }: Prop
   function clearFile() {
     if (fileRef.current) fileRef.current.value = "";
     setPreview(null);
+    setKeptPath("");
   }
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -61,6 +77,8 @@ export default function WishDialog({ open, onClose, defaultOwner, labels }: Prop
     const formData = new FormData(event.currentTarget);
     formData.set("for_whom", forWhom);
     formData.delete("image");
+
+    let imagePath = keptPath;
 
     const file = fileRef.current?.files?.[0];
     if (file) {
@@ -75,10 +93,15 @@ export default function WishDialog({ open, onClose, defaultOwner, labels }: Prop
         setBusy(false);
         return;
       }
-      formData.set("image_path", path);
+      imagePath = path;
     }
 
-    const result = await addWishItem(idle, formData);
+    formData.set("image_path", imagePath);
+
+    const result = editing
+      ? await updateWishItem(idle, formData)
+      : await addWishItem(idle, formData);
+
     setBusy(false);
 
     if (result.error) {
@@ -86,14 +109,19 @@ export default function WishDialog({ open, onClose, defaultOwner, labels }: Prop
       return;
     }
 
-    clearFile();
     onClose();
     router.refresh();
   }
 
   return (
-    <Modal open={open} title="Додати в вішліст" onClose={onClose}>
+    <Modal
+      open={open}
+      title={editing ? "Редагувати позицію" : "Додати в вішліст"}
+      onClose={onClose}
+    >
       <form onSubmit={onSubmit} className="space-y-4">
+        {item && <input type="hidden" name="id" value={item.id} />}
+
         <div className="grid grid-cols-2 gap-2">
           {(["her", "him"] as const).map((value) => {
             const active = forWhom === value;
@@ -116,7 +144,7 @@ export default function WishDialog({ open, onClose, defaultOwner, labels }: Prop
                     : undefined
                 }
               >
-                {labels[value]}
+                {OWNER_LABELS[value]}
               </button>
             );
           })}
@@ -133,6 +161,7 @@ export default function WishDialog({ open, onClose, defaultOwner, labels }: Prop
             required
             autoFocus
             placeholder="Навушники, поїздка, сукня…"
+            defaultValue={item?.title ?? ""}
             className="field w-full"
           />
         </div>
@@ -148,6 +177,7 @@ export default function WishDialog({ open, onClose, defaultOwner, labels }: Prop
               type="text"
               inputMode="url"
               placeholder="необовʼязково"
+              defaultValue={item?.url ?? ""}
               className="field w-full"
             />
           </div>
@@ -162,12 +192,14 @@ export default function WishDialog({ open, onClose, defaultOwner, labels }: Prop
                 type="text"
                 inputMode="decimal"
                 placeholder="—"
+                defaultValue={item?.price != null ? String(item.price) : ""}
                 className="field min-w-0 flex-1 tabular-nums"
               />
               <select
                 name="currency"
                 aria-label="Валюта"
-                defaultValue="PLN"
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value === "UAH" ? "UAH" : "PLN")}
                 className="field w-24 shrink-0 px-2"
               >
                 <option value="PLN">PLN</option>
@@ -186,6 +218,7 @@ export default function WishDialog({ open, onClose, defaultOwner, labels }: Prop
             name="note"
             rows={2}
             placeholder="колір, розмір, чому хочеться…"
+            defaultValue={item?.note ?? ""}
             className="field w-full resize-none"
           />
         </div>
@@ -204,17 +237,25 @@ export default function WishDialog({ open, onClose, defaultOwner, labels }: Prop
           />
           {preview ? (
             <div className="relative overflow-hidden rounded-xl border border-line">
-              {/* Локальний blob — next/image тут не потрібен */}
+              {/* Локальний blob або підписаний URL — next/image тут не потрібен */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={preview} alt="" className="max-h-48 w-full object-cover" />
-              <button
-                type="button"
-                onClick={clearFile}
-                aria-label="Прибрати фото"
-                className="absolute right-2 top-2 rounded-lg bg-black/60 p-1.5 text-white"
-              >
-                <X className="h-4 w-4" />
-              </button>
+              <div className="absolute right-2 top-2 flex gap-1.5">
+                <label
+                  htmlFor="image"
+                  className="cursor-pointer rounded-lg bg-black/60 px-2 py-1.5 text-xs text-white"
+                >
+                  Замінити
+                </label>
+                <button
+                  type="button"
+                  onClick={clearFile}
+                  aria-label="Прибрати фото"
+                  className="rounded-lg bg-black/60 p-1.5 text-white"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           ) : (
             <label
@@ -239,7 +280,7 @@ export default function WishDialog({ open, onClose, defaultOwner, labels }: Prop
           </button>
           <button type="submit" className="btn btn-primary flex-1" disabled={busy}>
             {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-            Додати
+            {editing ? "Зберегти" : "Додати"}
           </button>
         </div>
       </form>
