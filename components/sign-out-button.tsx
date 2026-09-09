@@ -18,7 +18,7 @@ export default function SignOutButton() {
     <button
       type="button"
       onClick={signOut}
-      className="btn btn-ghost w-full text-danger hover:border-danger/40"
+      className="btn w-full border border-danger/45 bg-danger/10 text-danger transition-colors hover:border-danger/70 hover:bg-danger/20"
     >
       <LogOut className="h-4 w-4" />
       Вийти
