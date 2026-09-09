@@ -1,36 +1,98 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Наш бюджет
 
-## Getting Started
+Приватний сайт на двох: спільний облік витрат по категоріях, історія за всі місяці,
+графіки та вішліст «для неї / для нього».
 
-First, run the development server:
+Стек: Next.js 16 (App Router) · TypeScript · Tailwind 4 · Supabase (Postgres + Auth + Storage) · Recharts.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Налаштування з нуля
+
+### 1. Створити проєкт Supabase
+
+1. Зайти на [supabase.com](https://supabase.com) → **New project**.
+2. Регіон обрати найближчий (Frankfurt / Central EU).
+3. Придумати і зберегти пароль до бази (потрібен лише для прямого доступу до Postgres).
+
+### 2. Створити таблиці
+
+Supabase → **SQL Editor** → **New query** → вставити вміст [`supabase/schema.sql`](supabase/schema.sql) → **Run**.
+
+Це створює таблиці, політики доступу (RLS), приватний бакет для фото та 8 категорій за замовчуванням.
+
+### 3. Створити два акаунти
+
+1. **Authentication → Users → Add user → Create new user**.
+2. Ввести email і пароль, увімкнути **Auto Confirm User**. Повторити для другого акаунта.
+3. **Authentication → Sign In / Providers → Email**: вимкнути **Allow new users to sign up**.
+   Після цього зареєструватися ззовні неможливо — лише ці два акаунти.
+
+### 4. Видати доступ
+
+Відкрити [`supabase/seed-profiles.sql`](supabase/seed-profiles.sql), замінити два email на справжні,
+запустити в SQL Editor. Запит має повернути рівно два рядки.
+
+> Рядок у таблиці `profiles` = дозвіл на доступ. Акаунт без такого рядка не побачить нічого,
+> навіть якщо якимось чином увійде.
+
+### 5. Підключити ключі
+
+Supabase → **Project Settings → API**. Скопіювати `Project URL` та `anon public` ключ у файл `.env.local`:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://xxxxxxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOi...
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`anon`-ключ безпечно тримати в браузері — весь доступ обмежують RLS-політики з кроку 2.
+Ключ `service_role` у цьому проєкті не потрібен — не додавай його.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 6. Запустити
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm install
+npm run dev
+```
 
-## Learn More
+Сайт на [localhost:3000](http://localhost:3000).
 
-To learn more about Next.js, take a look at the following resources:
+## Деплой на Vercel
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Залити репозиторій на GitHub.
+2. [vercel.com](https://vercel.com) → **Add New → Project** → обрати репозиторій.
+3. У **Environment Variables** додати ті самі два ключі з `.env.local`.
+4. **Deploy**.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Після деплою на телефоні: відкрити сайт у браузері → «Додати на початковий екран».
+Він відкриватиметься як окремий застосунок (PWA).
 
-## Deploy on Vercel
+## Структура
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+app/
+  login/            вхід
+  (app)/            захищена частина — усе за авторизацією
+    page.tsx        дашборд поточного місяця
+    history/        архів з фільтрами та експортом у CSV
+    charts/         чотири графіки
+    wishlist/       вішліст для неї / для нього
+    settings/       категорії, ліміти, профіль
+components/         UI, графіки в components/charts
+lib/
+  supabase/         клієнти для браузера, сервера та proxy
+  actions/          server actions (запис у базу)
+  queries.ts        читання з бази
+  aggregate.ts      підрахунки для графіків
+  dates.ts          робота з місяцями «YYYY-MM»
+supabase/           SQL для першого налаштування
+proxy.ts            перевірка сесії на кожному запиті
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Як це працює
+
+- **Місяці.** Витрати ніколи не видаляються. Дашборд показує лише поточний місяць,
+  тому 1-го числа він «оновлюється» сам. Історія дає доступ до будь-якого місяця.
+- **Категорії** не видаляються, а архівуються — інакше зламалися б старі витрати,
+  які на них посилаються.
+- **Фото вішліста** лежать у приватному бакеті. Сторінка щоразу генерує тимчасові
+  підписані посилання (на годину), тож напряму до файлів доступу немає.
+- **Валюта** — PLN. Змінюється в одному місці: `lib/format.ts`.

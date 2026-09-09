@@ -1,26 +1,124 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #0b0b12;
+  --surface: #14141f;
+  --surface-2: #1d1d2b;
+  --border: #272738;
+  --text: #f2f1f8;
+  --muted: #9a99b2;
+  --accent: #a78bfa;
+  --accent-soft: #2a2340;
+  --her: #f472b6;
+  --him: #38bdf8;
+  --danger: #f87171;
+  --ok: #4ade80;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--border);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-her: var(--her);
+  --color-him: var(--him);
+  --color-danger: var(--danger);
+  --color-ok: var(--ok);
   --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background:
+    radial-gradient(1100px 620px at 12% -12%, #241c3d 0%, transparent 60%),
+    radial-gradient(900px 520px at 92% 4%, #2c1b2c 0%, transparent 58%),
+    var(--bg);
+  background-attachment: fixed;
+  color: var(--text);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Базові елементи форм — щоб не повторювати класи в кожному полі */
+.field {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  padding: 0.65rem 0.8rem;
+  font-size: 0.95rem;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.field:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.field::placeholder {
+  color: color-mix(in srgb, var(--muted) 75%, transparent);
+}
+
+.card {
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  padding: 0.65rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: filter 0.15s, background 0.15s, border-color 0.15s;
+}
+.btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), #7c5cf0);
+  color: #12101c;
+  font-weight: 600;
+}
+.btn-primary:not(:disabled):hover {
+  filter: brightness(1.08);
+}
+.btn-ghost {
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+}
+.btn-ghost:not(:disabled):hover {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+}
+
+/* Прибираємо стрілки в полях суми */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+.rise {
+  animation: rise 0.28s ease-out both;
 }
