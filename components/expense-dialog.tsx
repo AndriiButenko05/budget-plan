@@ -50,7 +50,7 @@ export default function ExpenseDialog({ open, onClose, categories, expense }: Pr
 
         <div>
           <label htmlFor="amount" className="mb-1.5 block text-xs font-medium text-muted">
-            Сума, zł
+            Сума, PLN
           </label>
           <input
             id="amount"
@@ -101,37 +101,33 @@ export default function ExpenseDialog({ open, onClose, categories, expense }: Pr
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label
-              htmlFor="spent_at"
-              className="mb-1.5 block text-xs font-medium text-muted"
-            >
-              Дата
-            </label>
-            <input
-              id="spent_at"
-              name="spent_at"
-              type="date"
-              required
-              defaultValue={expense?.spent_at ?? toISODate(new Date())}
-              className="field"
-            />
-          </div>
-          <div>
-            <label htmlFor="note" className="mb-1.5 block text-xs font-medium text-muted">
-              Нотатка
-            </label>
-            <input
-              id="note"
-              name="note"
-              type="text"
-              placeholder="необовʼязково"
-              autoComplete="off"
-              defaultValue={expense?.note ?? ""}
-              className="field"
-            />
-          </div>
+        <div>
+          <label htmlFor="spent_at" className="mb-1.5 block text-xs font-medium text-muted">
+            Дата
+          </label>
+          <input
+            id="spent_at"
+            name="spent_at"
+            type="date"
+            required
+            defaultValue={expense?.spent_at ?? toISODate(new Date())}
+            className="field"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="note" className="mb-1.5 block text-xs font-medium text-muted">
+            Нотатка
+          </label>
+          <input
+            id="note"
+            name="note"
+            type="text"
+            placeholder="необовʼязково"
+            autoComplete="off"
+            defaultValue={expense?.note ?? ""}
+            className="field"
+          />
         </div>
 
         {state.error && (

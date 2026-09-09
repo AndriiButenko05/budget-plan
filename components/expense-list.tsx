@@ -66,7 +66,7 @@ export default function ExpenseList({
               {rows.map((expense) => (
                 <li
                   key={expense.id}
-                  className={`group flex items-center gap-3 px-3 py-2.5 transition-opacity ${
+                  className={`group flex items-start gap-3 px-3 py-2.5 transition-opacity ${
                     pendingId === expense.id ? "opacity-40" : ""
                   }`}
                 >
@@ -90,9 +90,13 @@ export default function ExpenseList({
                           {expense.author.name}
                         </span>
                       )}
-                      {expense.note && ` · ${expense.note}`}
                       {!grouped && ` · ${formatDayMonth(expense.spent_at)}`}
                     </p>
+                    {expense.note && (
+                      <p className="mt-0.5 text-xs leading-snug text-muted break-words">
+                        {expense.note}
+                      </p>
+                    )}
                   </div>
 
                   <span className="shrink-0 text-sm font-semibold tabular-nums">

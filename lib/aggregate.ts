@@ -1,5 +1,11 @@
 import { daysInMonth } from "@/lib/dates";
-import type { Category, ExpenseRow, Profile } from "@/lib/types";
+import type {
+  Category,
+  Currency,
+  ExpenseRow,
+  Profile,
+  WishlistItem,
+} from "@/lib/types";
 
 export type CategorySlice = {
   id: string;
@@ -112,4 +118,21 @@ export function categoryByUser(
     }
     return entry;
   });
+}
+
+/**
+ * Суми позицій вішліста по валютах. Складати PLN з UAH не можна —
+ * курсу ми не зберігаємо, тож кожна валюта йде окремим числом.
+ * Позиції без ціни просто не враховуються.
+ */
+export function totalsByCurrency(items: WishlistItem[]) {
+  const sums = new Map<Currency, number>();
+
+  for (const item of items) {
+    if (item.price === null) continue;
+    const currency = item.currency ?? "PLN";
+    sums.set(currency, (sums.get(currency) ?? 0) + item.price);
+  }
+
+  return [...sums.entries()].sort(([a], [b]) => a.localeCompare(b));
 }

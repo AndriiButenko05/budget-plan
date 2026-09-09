@@ -1,4 +1,5 @@
 import WishlistBoard from "@/components/wishlist-board";
+import WishlistTotals from "@/components/wishlist-totals";
 import { requireProfile } from "@/lib/auth";
 import { getWishlist } from "@/lib/queries";
 
@@ -32,6 +33,8 @@ export default async function WishlistPage() {
           Фото, посилання або просто ідея — щоб не забути
         </p>
       </div>
+
+      <WishlistTotals items={items} />
 
       <WishlistBoard items={items} imageUrls={imageUrls} />
     </div>
