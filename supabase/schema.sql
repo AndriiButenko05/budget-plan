@@ -75,6 +75,7 @@ create table if not exists public.wishlist_items (
   url        text,
   note       text,
   price      numeric(12,2),
+  currency   text not null default 'PLN' check (currency in ('PLN', 'UAH')),
   image_path text,
   status     wish_status not null default 'idea',
   created_at timestamptz not null default now()

@@ -1,4 +1,5 @@
 export type WishOwner = "her" | "him";
+export type Currency = "PLN" | "UAH";
 export type WishStatus = "idea" | "bought";
 
 export type Profile = {
@@ -48,6 +49,7 @@ export type WishlistItem = {
   url: string | null;
   note: string | null;
   price: number | null;
+  currency: Currency;
   image_path: string | null;
   status: WishStatus;
   created_at: string;

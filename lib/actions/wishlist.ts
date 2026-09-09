@@ -3,9 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { requireProfile } from "@/lib/auth";
 import { type ActionResult, parseAmount, text } from "@/lib/actions/shared";
-import type { WishOwner } from "@/lib/types";
+import type { Currency, WishOwner } from "@/lib/types";
 
 const BUCKET = "wishlist";
+
+function currency(raw: FormDataEntryValue | null): Currency {
+  return String(raw ?? "") === "UAH" ? "UAH" : "PLN";
+}
 
 function owner(raw: FormDataEntryValue | null): WishOwner | null {
   const value = String(raw ?? "");
@@ -57,6 +61,7 @@ export async function addWishItem(
     url: safeUrl(formData.get("url")),
     note: text(formData.get("note"), 1000),
     price: rawPrice ? parseAmount(rawPrice) : null,
+    currency: currency(formData.get("currency")),
     image_path: safeImagePath(formData.get("image_path")),
   });
 

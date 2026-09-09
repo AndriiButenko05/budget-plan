@@ -137,7 +137,7 @@ export default function WishDialog({ open, onClose, defaultOwner, labels }: Prop
           />
         </div>
 
-        <div className="grid grid-cols-[1fr_auto] gap-3">
+        <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
           <div>
             <label htmlFor="url" className="mb-1.5 block text-xs font-medium text-muted">
               Посилання
@@ -151,18 +151,29 @@ export default function WishDialog({ open, onClose, defaultOwner, labels }: Prop
               className="field"
             />
           </div>
-          <div className="w-28">
+          <div className="sm:w-40">
             <label htmlFor="price" className="mb-1.5 block text-xs font-medium text-muted">
-              Ціна, zł
+              Ціна
             </label>
-            <input
-              id="price"
-              name="price"
-              type="text"
-              inputMode="decimal"
-              placeholder="—"
-              className="field"
-            />
+            <div className="flex gap-1.5">
+              <input
+                id="price"
+                name="price"
+                type="text"
+                inputMode="decimal"
+                placeholder="—"
+                className="field min-w-0 flex-1 tabular-nums"
+              />
+              <select
+                name="currency"
+                aria-label="Валюта"
+                defaultValue="PLN"
+                className="field w-20 px-1.5"
+              >
+                <option value="PLN">PLN</option>
+                <option value="UAH">UAH</option>
+              </select>
+            </div>
           </div>
         </div>
 

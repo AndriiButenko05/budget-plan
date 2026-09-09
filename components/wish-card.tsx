@@ -2,9 +2,9 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, ExternalLink, RotateCcw, Trash2 } from "lucide-react";
+import { Check, Clock, ExternalLink, Trash2 } from "lucide-react";
 import { deleteWishItem, toggleWishStatus } from "@/lib/actions/wishlist";
-import { formatMoney } from "@/lib/format";
+import { formatMoneyIn } from "@/lib/format";
 import type { WishlistItem } from "@/lib/types";
 
 type Props = {
@@ -36,8 +36,8 @@ export default function WishCard({ item, imageUrl }: Props) {
   return (
     <article
       className={`card overflow-hidden transition-opacity ${
-        pending ? "opacity-50" : ""
-      } ${bought ? "opacity-60" : ""}`}
+        pending ? "opacity-50" : bought ? "opacity-75" : ""
+      }`}
     >
       {imageUrl && (
         // Підписані URL з Supabase — обходимося без next/image
@@ -52,16 +52,10 @@ export default function WishCard({ item, imageUrl }: Props) {
 
       <div className="space-y-2 p-4">
         <div className="flex items-start gap-2">
-          <h3
-            className={`mr-auto text-sm font-semibold leading-snug ${
-              bought ? "line-through decoration-muted" : ""
-            }`}
-          >
-            {item.title}
-          </h3>
+          <h3 className="mr-auto text-sm font-semibold leading-snug">{item.title}</h3>
           {item.price !== null && (
             <span className="shrink-0 text-sm font-semibold tabular-nums text-accent">
-              {formatMoney(item.price)}
+              {formatMoneyIn(item.price, item.currency)}
             </span>
           )}
         </div>
@@ -85,17 +79,27 @@ export default function WishCard({ item, imageUrl }: Props) {
             type="button"
             onClick={toggle}
             disabled={pending}
-            className="btn btn-ghost flex-1 py-1.5 text-xs"
+            aria-pressed={bought}
+            title={
+              bought
+                ? "Натисни, щоб повернути в очікування"
+                : "Натисни, коли купите"
+            }
+            className={`btn flex-1 py-1.5 text-xs ${
+              bought
+                ? "border border-ok/40 bg-ok/10 text-ok"
+                : "btn-ghost"
+            }`}
           >
             {bought ? (
               <>
-                <RotateCcw className="h-3.5 w-3.5" />
-                Повернути
+                <Check className="h-3.5 w-3.5" />
+                Куплено
               </>
             ) : (
               <>
-                <Check className="h-3.5 w-3.5" />
-                Куплено
+                <Clock className="h-3.5 w-3.5" />
+                Очікується
               </>
             )}
           </button>

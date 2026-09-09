@@ -1,3 +1,5 @@
+import type { Currency } from "@/lib/types";
+
 const money = new Intl.NumberFormat("uk-UA", {
   style: "currency",
   currency: "PLN",
@@ -10,9 +12,26 @@ const moneyShort = new Intl.NumberFormat("uk-UA", {
   maximumFractionDigits: 0,
 });
 
-/** 1234.5 → «1 234,50 zł» */
+/** 1234.5 → «1 234,50 PLN» */
 export function formatMoney(value: number) {
   return money.format(value);
+}
+
+const byCurrency: Record<Currency, Intl.NumberFormat> = {
+  PLN: money,
+  UAH: new Intl.NumberFormat("uk-UA", {
+    style: "currency",
+    currency: "UAH",
+    maximumFractionDigits: 2,
+  }),
+};
+
+/**
+ * Те саме, але у валюті, вказаній для конкретної позиції вішліста.
+ * Невідома валюта (наприклад, старий запис без цього поля) → PLN.
+ */
+export function formatMoneyIn(value: number, currency: Currency) {
+  return (byCurrency[currency] ?? money).format(value);
 }
 
 /** Для осей графіків: 1234.5 → «1 235 zł» */
