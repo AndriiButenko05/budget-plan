@@ -7,6 +7,7 @@ import Modal from "@/components/modal";
 import { addWishItem, updateWishItem } from "@/lib/actions/wishlist";
 import { idle } from "@/lib/actions/shared";
 import { downscaleImage } from "@/lib/image";
+import { digitsOnly } from "@/lib/input";
 import { imageSrc } from "@/lib/image-src";
 import { OWNER_LABELS } from "@/lib/labels";
 import { createClient } from "@/lib/supabase/client";
@@ -36,6 +37,10 @@ export default function WishDialog({
 
   const [forWhom, setForWhom] = useState<WishOwner>(item?.for_whom ?? defaultOwner);
   const [currency, setCurrency] = useState(item?.currency ?? "PLN");
+  // Ціна у вішлісті — орієнтир, копійки тут ні до чого.
+  const [price, setPrice] = useState(
+    item?.price != null ? String(Math.round(item.price)) : "",
+  );
   const [preview, setPreview] = useState<string | null>(
     item?.image_path ? imageSrc(item.image_path) : null,
   );
@@ -216,9 +221,11 @@ export default function WishDialog({
               id="price"
               name="price"
               type="text"
-              inputMode="decimal"
+              inputMode="numeric"
+              autoComplete="off"
               placeholder="—"
-              defaultValue={item?.price != null ? String(item.price) : ""}
+              value={price}
+              onChange={(event) => setPrice(digitsOnly(event.target.value))}
               className="field min-w-0 flex-1 tabular-nums"
             />
             <select

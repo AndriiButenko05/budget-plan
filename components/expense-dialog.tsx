@@ -7,6 +7,7 @@ import Modal from "@/components/modal";
 import { addExpense, updateExpense } from "@/lib/actions/expenses";
 import { idle } from "@/lib/actions/shared";
 import { toISODate } from "@/lib/dates";
+import { decimalOnly } from "@/lib/input";
 import { SHARED } from "@/lib/labels";
 import type { Category, ExpenseRow, Profile } from "@/lib/types";
 
@@ -38,6 +39,7 @@ export default function ExpenseDialog({
   const [categoryId, setCategoryId] = useState(
     expense?.category_id ?? categories[0]?.id ?? "",
   );
+  const [amount, setAmount] = useState(expense ? String(expense.amount) : "");
   /** Порожній рядок — спільна витрата. */
   const [ownerId, setOwnerId] = useState(expense?.attributed_to ?? "");
 
@@ -72,7 +74,8 @@ export default function ExpenseDialog({
             autoComplete="off"
             required
             autoFocus
-            defaultValue={expense ? String(expense.amount) : ""}
+            value={amount}
+            onChange={(event) => setAmount(decimalOnly(event.target.value))}
             className="field w-full text-2xl font-semibold tabular-nums"
           />
         </div>

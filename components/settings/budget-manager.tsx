@@ -6,6 +6,7 @@ import { Check, Loader2 } from "lucide-react";
 import { setBudget } from "@/lib/actions/settings";
 import { idle } from "@/lib/actions/shared";
 import { formatMonthYear } from "@/lib/format";
+import { decimalOnly } from "@/lib/input";
 import type { Budget, Category } from "@/lib/types";
 
 type Props = {
@@ -76,7 +77,7 @@ function BudgetRow({
         aria-label={`Ліміт для «${category.name}»`}
         placeholder="—"
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={(e) => setValue(decimalOnly(e.target.value))}
         className="field w-24 text-right tabular-nums"
       />
       <span className="text-xs text-muted">PLN</span>

@@ -69,6 +69,20 @@ body {
 /* Увага: backdrop-filter робить .card системою координат для
    position: fixed усередині. Модалки треба рендерити поза карточкою,
    інакше їх обріже overflow-hidden. */
+/*
+ * Системна стрілка у <select> малюється засобами ОС і на темному тлі
+ * дає світлу пляму при натисканні. Прибираємо її й малюємо свою.
+ */
+select.field {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 2.1rem;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239a99b2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 0.65rem center;
+  background-size: 1rem;
+}
+
 .card {
   border-radius: 1rem;
   border: 1px solid var(--border);
