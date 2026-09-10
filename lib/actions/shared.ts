@@ -8,7 +8,13 @@ export const idle: ActionResult = {};
  * зокрема нерозривні, які підставляє форматування й вставка з буфера.
  */
 export function parseAmount(raw: FormDataEntryValue | null) {
-  const cleaned = String(raw ?? "")
+  const source = String(raw ?? "");
+
+  // Мінус — це не сміття форматування, а інший намір. Якщо просто
+  // вирізати його разом із рештою, «-5» тихо стало б п'ятіркою.
+  if (source.includes("-")) return null;
+
+  const cleaned = source
     .replace(/[^0-9.,]/g, "")
     .replace(",", ".");
 
