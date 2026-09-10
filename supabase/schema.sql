@@ -80,6 +80,8 @@ create table if not exists public.wishlist_items (
   price      numeric(12,2),
   currency   text not null default 'PLN' check (currency in ('PLN', 'UAH')),
   image_path text,
+  -- яка точка фото має лишатись у кадрі карточки
+  image_position text not null default '50% 50%',
   status     wish_status not null default 'idea',
   created_at timestamptz not null default now()
 );

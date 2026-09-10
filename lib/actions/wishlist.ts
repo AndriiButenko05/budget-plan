@@ -26,6 +26,12 @@ function safeImagePath(raw: FormDataEntryValue | null) {
   return value && /^[0-9a-f-]{36}\.[a-z0-9]{2,5}$/i.test(value) ? value : null;
 }
 
+/** Формат «50% 30%»; будь-що інше — центр. */
+function imagePosition(raw: FormDataEntryValue | null) {
+  const value = String(raw ?? "").trim();
+  return /^\d{1,3}% \d{1,3}%$/.test(value) ? value : "50% 50%";
+}
+
 /** Дозволяємо лише http(s) — щоб у картку не потрапив javascript: */
 function safeUrl(raw: FormDataEntryValue | null) {
   const value = text(raw, 600);
@@ -63,6 +69,7 @@ export async function addWishItem(
     price: rawPrice ? parseAmount(rawPrice) : null,
     currency: currency(formData.get("currency")),
     image_path: safeImagePath(formData.get("image_path")),
+    image_position: imagePosition(formData.get("image_position")),
   });
 
   if (error) return { error: "Не вдалося зберегти" };
@@ -109,6 +116,7 @@ export async function updateWishItem(
       price: rawPrice ? parseAmount(rawPrice) : null,
       currency: currency(formData.get("currency")),
       image_path: imagePath,
+      image_position: imagePosition(formData.get("image_position")),
     })
     .eq("id", id);
 

@@ -105,7 +105,10 @@ export async function getBudgets(
 export async function getWishlist(supabase: SupabaseClient): Promise<WishlistItem[]> {
   const { data, error } = await supabase
     .from("wishlist_items")
-    .select("id,created_by,for_whom,title,url,note,price,currency,image_path,status,created_at")
+    // Один рядок навмисно: Supabase виводить типи лише з літерала.
+    .select(
+      "id,created_by,for_whom,title,url,note,price,currency,image_path,image_position,status,created_at",
+    )
     .order("status", { ascending: true })
     .order("created_at", { ascending: false });
 

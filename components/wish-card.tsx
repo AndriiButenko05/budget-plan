@@ -55,6 +55,7 @@ export default function WishCard({ item, onEdit }: Props) {
           src={imageSrc(item.image_path)}
           alt={item.title}
           className="h-40 w-full object-cover"
+          style={{ objectPosition: item.image_position }}
           loading="lazy"
           decoding="async"
         />

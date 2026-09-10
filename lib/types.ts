@@ -54,6 +54,8 @@ export type WishlistItem = {
   price: number | null;
   currency: Currency;
   image_path: string | null;
+  /** Точка фото, яка лишається в кадрі карточки: «50% 30%». */
+  image_position: string;
   status: WishStatus;
   created_at: string;
 };

@@ -41,6 +41,9 @@ export default function WishDialog({
   );
   /** Шлях, який піде в базу, якщо нового файлу не виберуть. */
   const [keptPath, setKeptPath] = useState(item?.image_path ?? "");
+  /** Точка фото, яка має лишатись у кадрі карточки. */
+  const [position, setPosition] = useState(item?.image_position ?? "50% 50%");
+  const [picking, setPicking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -62,6 +65,19 @@ export default function WishDialog({
     }
 
     setPreview(URL.createObjectURL(file));
+    setPosition("50% 50%");
+  }
+
+  /** Точка натискання стає тією, що лишається в кадрі. */
+  function pickPosition(event: React.PointerEvent<HTMLDivElement>) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const percent = (value: number, size: number) =>
+      Math.round(Math.min(100, Math.max(0, (value / size) * 100)));
+
+    setPosition(
+      `${percent(event.clientX - rect.left, rect.width)}% ` +
+        `${percent(event.clientY - rect.top, rect.height)}%`,
+    );
   }
 
   function clearFile() {
@@ -130,6 +146,7 @@ export default function WishDialog({
     >
       <form onSubmit={onSubmit} className="space-y-4">
         {item && <input type="hidden" name="id" value={item.id} />}
+        <input type="hidden" name="image_position" value={position} />
 
         <div className="grid grid-cols-2 gap-2">
           {(["her", "him"] as const).map((value) => {
@@ -175,46 +192,45 @@ export default function WishDialog({
           />
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-          <div>
-            <label htmlFor="url" className="mb-1.5 block text-xs font-medium text-muted">
-              Посилання
-            </label>
+        <div>
+          <label htmlFor="url" className="mb-1.5 block text-xs font-medium text-muted">
+            Посилання
+          </label>
+          <input
+            id="url"
+            name="url"
+            type="text"
+            inputMode="url"
+            placeholder="необовʼязково"
+            defaultValue={item?.url ?? ""}
+            className="field w-full"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="price" className="mb-1.5 block text-xs font-medium text-muted">
+            Ціна
+          </label>
+          <div className="flex gap-1.5">
             <input
-              id="url"
-              name="url"
+              id="price"
+              name="price"
               type="text"
-              inputMode="url"
-              placeholder="необовʼязково"
-              defaultValue={item?.url ?? ""}
-              className="field w-full"
+              inputMode="decimal"
+              placeholder="—"
+              defaultValue={item?.price != null ? String(item.price) : ""}
+              className="field min-w-0 flex-1 tabular-nums"
             />
-          </div>
-          <div className="sm:w-40">
-            <label htmlFor="price" className="mb-1.5 block text-xs font-medium text-muted">
-              Ціна
-            </label>
-            <div className="flex gap-1.5">
-              <input
-                id="price"
-                name="price"
-                type="text"
-                inputMode="decimal"
-                placeholder="—"
-                defaultValue={item?.price != null ? String(item.price) : ""}
-                className="field min-w-0 flex-1 tabular-nums"
-              />
-              <select
-                name="currency"
-                aria-label="Валюта"
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value === "UAH" ? "UAH" : "PLN")}
-                className="field w-24 shrink-0 px-2"
-              >
-                <option value="PLN">PLN</option>
-                <option value="UAH">UAH</option>
-              </select>
-            </div>
+            <select
+              name="currency"
+              aria-label="Валюта"
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value === "UAH" ? "UAH" : "PLN")}
+              className="field w-24 shrink-0 px-2"
+            >
+              <option value="PLN">PLN</option>
+              <option value="UAH">UAH</option>
+            </select>
           </div>
         </div>
 
@@ -245,26 +261,55 @@ export default function WishDialog({
             onChange={pickFile}
           />
           {preview ? (
-            <div className="relative overflow-hidden rounded-xl border border-line">
-              {/* Локальний blob або наш маршрут — next/image тут не застосовний */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={preview} alt="" className="max-h-48 w-full object-cover" />
-              <div className="absolute right-2 top-2 flex gap-1.5">
-                <label
-                  htmlFor="image"
-                  className="cursor-pointer rounded-lg bg-black/60 px-2 py-1.5 text-xs text-white"
+            <div className="space-y-1.5">
+              {/*
+                Рамка тієї ж висоти, що й у карточці, тож видно саме те,
+                що буде у списку. Натискання або протягування вибирає точку,
+                яка лишиться в кадрі.
+              */}
+              <div
+                onPointerDown={(event) => {
+                  setPicking(true);
+                  event.currentTarget.setPointerCapture(event.pointerId);
+                  pickPosition(event);
+                }}
+                onPointerMove={(event) => picking && pickPosition(event)}
+                onPointerUp={() => setPicking(false)}
+                onPointerCancel={() => setPicking(false)}
+                className="relative h-40 cursor-crosshair touch-none select-none overflow-hidden rounded-xl border border-line"
+              >
+                {/* Локальний blob або наш маршрут — next/image тут не застосовний */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={preview}
+                  alt=""
+                  draggable={false}
+                  style={{ objectPosition: position }}
+                  className="pointer-events-none h-full w-full object-cover"
+                />
+                <div
+                  className="absolute right-2 top-2 flex gap-1.5"
+                  onPointerDown={(event) => event.stopPropagation()}
                 >
-                  Замінити
-                </label>
-                <button
-                  type="button"
-                  onClick={clearFile}
-                  aria-label="Прибрати фото"
-                  className="rounded-lg bg-black/60 p-1.5 text-white"
-                >
-                  <X className="h-4 w-4" />
-                </button>
+                  <label
+                    htmlFor="image"
+                    className="cursor-pointer rounded-lg bg-black/60 px-2 py-1.5 text-xs text-white"
+                  >
+                    Замінити
+                  </label>
+                  <button
+                    type="button"
+                    onClick={clearFile}
+                    aria-label="Прибрати фото"
+                    className="rounded-lg bg-black/60 p-1.5 text-white"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
+              <p className="text-[11px] leading-snug text-muted">
+                Натисни на фото там, де головне — саме ця частина буде видна в карточці
+              </p>
             </div>
           ) : (
             <label
