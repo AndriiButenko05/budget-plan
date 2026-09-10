@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/lib/types";
 
@@ -12,6 +13,11 @@ import type { Profile } from "@/lib/types";
  * тож між користувачами нічого не протікає.
  */
 export const getProfile = cache(async () => {
+  // Явно позначаємо, що далі йде робота часу запиту. Без цього
+  // supabase-js встигає глянути на годинник (перевірка строку дії токена)
+  // раніше, ніж прочитає куку, і пререндер падає на blocking-prerender-current-time.
+  await connection();
+
   const supabase = await createClient();
 
   const {
