@@ -20,12 +20,14 @@ export default function Modal({ open, title, onClose, children }: Props) {
     }
 
     document.addEventListener("keydown", onKeyDown);
-    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
     return () => {
       document.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = previousOverflow;
+      // Прибираємо саме властивість, а не відновлюємо збережене значення:
+      // якщо ефект перезапуститься вже при заблокованій прокрутці, у
+      // «попередньому» опиниться hidden, і сторінка лишиться без скролу.
+      document.body.style.removeProperty("overflow");
     };
   }, [open, onClose]);
 

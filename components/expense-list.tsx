@@ -131,14 +131,16 @@ export default function ExpenseList({
         ))}
       </div>
 
-      <ExpenseDialog
-        key={editing?.id ?? "none"}
-        open={editing !== null}
-        onClose={() => setEditing(null)}
-        categories={categories}
-        profiles={profiles}
-        expense={editing ?? undefined}
-      />
+      {/* Лише поки відкрито — тоді useActionState не тягне старий результат */}
+      {editing && (
+        <ExpenseDialog
+          open
+          onClose={() => setEditing(null)}
+          categories={categories}
+          profiles={profiles}
+          expense={editing}
+        />
+      )}
     </>
   );
 }

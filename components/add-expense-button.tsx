@@ -35,12 +35,20 @@ export default function AddExpenseButton({
         </button>
       )}
 
-      <ExpenseDialog
-        open={open}
-        onClose={() => setOpen(false)}
-        categories={categories}
-        profiles={profiles}
-      />
+      {/*
+        Рендеримо лише поки відкрито, щоб при закритті компонент
+        розмонтовувався. Інакше useActionState зберігає останній
+        результат, і ефект «успіх → закрити» спрацьовує ще раз одразу
+        після повторного відкриття — кнопка реагує, а модалки не видно.
+      */}
+      {open && (
+        <ExpenseDialog
+          open
+          onClose={() => setOpen(false)}
+          categories={categories}
+          profiles={profiles}
+        />
+      )}
     </>
   );
 }
