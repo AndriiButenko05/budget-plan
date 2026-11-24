@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { CurrencyProvider } from "@/components/currency";
 import WishlistBoard from "@/components/wishlist-board";
 import WishlistTotals from "@/components/wishlist-totals";
 import { CardSkeleton } from "@/components/skeletons";
@@ -25,14 +26,14 @@ export default function WishlistPage() {
 }
 
 async function WishlistContent() {
-  const { supabase } = await requireProfile();
+  const { supabase, currency } = await requireProfile();
   const items = await getWishlist(supabase);
 
   return (
-    <>
+    <CurrencyProvider currency={currency}>
       <WishlistTotals items={items} />
       <WishlistBoard items={items} />
-    </>
+    </CurrencyProvider>
   );
 }
 

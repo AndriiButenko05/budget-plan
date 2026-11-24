@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { CurrencyProvider } from "@/components/currency";
 import BudgetManager from "@/components/settings/budget-manager";
 import CategoryManager from "@/components/settings/category-manager";
 import ProfileForm from "@/components/settings/profile-form";
@@ -32,7 +33,7 @@ function SettingsSkeleton() {
 }
 
 async function SettingsContent() {
-  const { supabase, profile } = await requireProfile();
+  const { supabase, profile, currency } = await requireProfile();
   const month = currentMonthKey();
 
   const [categories, budgets, profiles] = await Promise.all([
@@ -44,7 +45,7 @@ async function SettingsContent() {
   const activeCategories = categories.filter((c) => !c.is_archived);
 
   return (
-    <>
+    <CurrencyProvider currency={currency}>
       <section className="card p-5">
         <h2 className="mb-4 text-sm font-semibold">Мій профіль</h2>
         <ProfileForm profile={profile} />
@@ -85,6 +86,6 @@ async function SettingsContent() {
       <div className="pt-1">
         <SignOutButton />
       </div>
-    </>
+    </CurrencyProvider>
   );
 }

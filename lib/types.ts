@@ -1,5 +1,8 @@
 export type WishOwner = "her" | "him";
-export type Currency = "PLN" | "UAH";
+/** Валюта бюджету: у ній ведуться витрати й ліміти. */
+export type BudgetCurrency = "PLN" | "EUR";
+/** Валюта позиції вішліста: валюта бюджету або гривні. */
+export type Currency = BudgetCurrency | "UAH";
 export type WishStatus = "idea" | "bought";
 
 export type Profile = {

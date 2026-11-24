@@ -1,6 +1,7 @@
 "use client";
 
 import { Download } from "lucide-react";
+import { useCurrency } from "@/components/currency";
 import { SHARED } from "@/lib/labels";
 import type { ExpenseRow } from "@/lib/types";
 
@@ -12,8 +13,10 @@ export default function ExportCsvButton({
   expenses: ExpenseRow[];
   filename: string;
 }) {
+  const currency = useCurrency();
+
   function download() {
-    const header = ["Дата", "Категорія", "На кого", "Сума (PLN)", "Нотатка"];
+    const header = ["Дата", "Категорія", "На кого", `Сума (${currency})`, "Нотатка"];
     const rows = expenses.map((expense) => [
       expense.spent_at,
       expense.category?.name ?? "",

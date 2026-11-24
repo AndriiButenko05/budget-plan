@@ -1,4 +1,4 @@
-import type { Currency } from "@/lib/types";
+import type { BudgetCurrency, Currency } from "@/lib/types";
 
 /**
  * Символ валюти задаємо самі, а не через style: "currency".
@@ -7,6 +7,7 @@ import type { Currency } from "@/lib/types";
  */
 const CURRENCY_SUFFIX: Record<Currency, string> = {
   PLN: "PLN",
+  EUR: "€",
   UAH: "₴",
 };
 
@@ -18,13 +19,13 @@ const decimal = new Intl.NumberFormat("uk-UA", {
 const whole = new Intl.NumberFormat("uk-UA", { maximumFractionDigits: 0 });
 
 /** 1234.5 → «1 234,50 PLN» */
-export function formatMoney(value: number) {
-  return `${decimal.format(value)} ${CURRENCY_SUFFIX.PLN}`;
+export function formatMoney(value: number, currency: BudgetCurrency) {
+  return `${decimal.format(value)} ${CURRENCY_SUFFIX[currency]}`;
 }
 
 /** Для осей графіків: 1234.5 → «1 235 PLN» */
-export function formatMoneyShort(value: number) {
-  return `${whole.format(value)} ${CURRENCY_SUFFIX.PLN}`;
+export function formatMoneyShort(value: number, currency: BudgetCurrency) {
+  return `${whole.format(value)} ${CURRENCY_SUFFIX[currency]}`;
 }
 
 /** Те саме у валюті конкретної позиції вішліста. Невідома → PLN. */

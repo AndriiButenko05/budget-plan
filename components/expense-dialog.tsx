@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { useCurrency } from "@/components/currency";
 import Modal from "@/components/modal";
 import { addExpense, updateExpense } from "@/lib/actions/expenses";
 import { idle } from "@/lib/actions/shared";
@@ -27,6 +28,7 @@ export default function ExpenseDialog({
   profiles,
   expense,
 }: Props) {
+  const currency = useCurrency();
   const router = useRouter();
   const editing = Boolean(expense);
   const [state, formAction, pending] = useActionState(
@@ -63,7 +65,7 @@ export default function ExpenseDialog({
 
         <div>
           <label htmlFor="amount" className="mb-1.5 block text-xs font-medium text-muted">
-            Сума, PLN
+            Сума, {currency}
           </label>
           <input
             id="amount"

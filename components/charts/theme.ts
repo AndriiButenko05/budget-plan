@@ -1,4 +1,5 @@
 import { formatMoney, formatMonthYear } from "@/lib/format";
+import type { BudgetCurrency } from "@/lib/types";
 
 /** Спільні стилі для всіх графіків, щоб вони виглядали як одна система. */
 export const axisStyle = {
@@ -24,6 +25,7 @@ export const tooltipStyle = {
  * Recharts типізує аргументи форматерів як ReactNode | undefined,
  * тому приймаємо unknown і зводимо самі.
  */
-export const moneyTooltip = (value: unknown) => formatMoney(Number(value));
+export const moneyTooltip = (currency: BudgetCurrency) => (value: unknown) =>
+  formatMoney(Number(value), currency);
 export const monthTooltipLabel = (label: unknown) => formatMonthYear(`${String(label)}-01`);
 export const dayTooltipLabel = (label: unknown) => `${String(label)} день`;

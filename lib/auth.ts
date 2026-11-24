@@ -2,7 +2,7 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import type { Profile } from "@/lib/types";
+import type { BudgetCurrency, Profile } from "@/lib/types";
 
 /**
  * Хто зробив запит, або null, якщо це не один із двох дозволених акаунтів.
@@ -26,13 +26,30 @@ export const getProfile = cache(async () => {
 
   if (!user) return null;
 
-  const { data: profile } = await supabase
+  const first = await supabase
     .from("profiles")
-    .select("id,name,color,created_at")
+    .select("id,name,color,created_at,household:households(currency)")
     .eq("id", user.id)
-    .maybeSingle<Profile>();
+    .maybeSingle<Profile & { household: { currency: BudgetCurrency } | null }>();
+  let profile = first.data;
 
-  return profile ? { supabase, user, profile } : null;
+  // Поки migration-households.sql не запущено, таблиці households немає
+  // і запит вище падає. Тоді беремо профіль без неї — валюта PLN, як було.
+  if (first.error) {
+    ({ data: profile } = await supabase
+      .from("profiles")
+      .select("id,name,color,created_at")
+      .eq("id", user.id)
+      .maybeSingle<Profile & { household: null }>());
+  }
+
+  if (!profile) return null;
+
+  const { household, ...rest } = profile;
+  // Валюта бюджету: у вас PLN, в окремого бюджету може бути EUR.
+  const currency: BudgetCurrency = household?.currency === "EUR" ? "EUR" : "PLN";
+
+  return { supabase, user, profile: rest as Profile, currency };
 });
 
 /** Те саме, але для сторінок: без доступу — на форму входу. */

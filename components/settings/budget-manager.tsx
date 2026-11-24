@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Loader2 } from "lucide-react";
+import { useCurrency } from "@/components/currency";
 import { setBudget } from "@/lib/actions/settings";
 import { idle } from "@/lib/actions/shared";
 import { formatMonthYear } from "@/lib/format";
@@ -49,6 +50,7 @@ function BudgetRow({
   limit?: number;
 }) {
   const router = useRouter();
+  const currency = useCurrency();
   const [state, formAction, pending] = useActionState(setBudget, idle);
   const initial = limit !== undefined ? String(limit) : "";
   const [value, setValue] = useState(initial);
@@ -80,7 +82,7 @@ function BudgetRow({
         onChange={(e) => setValue(decimalOnly(e.target.value))}
         className="field w-24 text-right tabular-nums"
       />
-      <span className="text-xs text-muted">PLN</span>
+      <span className="text-xs text-muted">{currency}</span>
 
       <button
         type="submit"

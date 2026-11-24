@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
+import { CurrencyProvider } from "@/components/currency";
 import AddExpenseButton from "@/components/add-expense-button";
 import CategoryBars from "@/components/category-bars";
 import ExpenseList from "@/components/expense-list";
@@ -35,7 +36,7 @@ function DashboardSkeleton() {
 }
 
 async function DashboardContent() {
-  const { supabase } = await requireProfile();
+  const { supabase, currency } = await requireProfile();
 
   const month = currentMonthKey();
   const previousMonth = shiftMonth(month, -1);
@@ -55,12 +56,13 @@ async function DashboardContent() {
   const monthLimit = budgets.reduce((sum, b) => sum + b.limit_amount, 0);
 
   return (
+    <CurrencyProvider currency={currency}>
     <div className="space-y-5">
       <section className="card rise p-5">
         <p className="text-xs font-medium uppercase tracking-wide text-muted">
           {formatMonthYear(`${month}-01`)}
         </p>
-        <p className="mt-1 text-4xl font-semibold tabular-nums">{formatMoney(spent)}</p>
+        <p className="mt-1 text-4xl font-semibold tabular-nums">{formatMoney(spent, currency)}</p>
 
         <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
           {change !== null && (
@@ -79,7 +81,7 @@ async function DashboardContent() {
           )}
           {monthLimit > 0 && (
             <span className="text-muted">
-              Ліміт: {formatMoney(monthLimit)}
+              Ліміт: {formatMoney(monthLimit, currency)}
               {spent > monthLimit && (
                 <span className="text-danger"> · перевищено</span>
               )}
@@ -108,7 +110,7 @@ async function DashboardContent() {
                   />
                   {owner.name}
                   <span className="font-medium tabular-nums">
-                    {formatMoney(owner.total)}
+                    {formatMoney(owner.total, currency)}
                   </span>
                 </span>
               ))}
@@ -119,7 +121,7 @@ async function DashboardContent() {
 
       <section className="card p-5">
         <h2 className="mb-4 text-sm font-semibold">По категоріях</h2>
-        <CategoryBars slices={byCategory(expenses, categories)} limits={limits} />
+        <CategoryBars slices={byCategory(expenses, categories)} limits={limits} currency={currency} />
       </section>
 
       <section>
@@ -145,5 +147,6 @@ async function DashboardContent() {
         <AddExpenseButton categories={categories} profiles={profiles} />
       </div>
     </div>
+    </CurrencyProvider>
   );
 }

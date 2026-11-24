@@ -3,12 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { requireProfile } from "@/lib/auth";
 import { type ActionResult, parseAmount, text } from "@/lib/actions/shared";
-import type { Currency, WishOwner } from "@/lib/types";
+import type { BudgetCurrency, Currency, WishOwner } from "@/lib/types";
 
 const BUCKET = "wishlist";
 
-function currency(raw: FormDataEntryValue | null): Currency {
-  return String(raw ?? "") === "UAH" ? "UAH" : "PLN";
+/** Дозволено валюту свого бюджету або гривні; інше — валюта бюджету. */
+function currency(raw: FormDataEntryValue | null, budget: BudgetCurrency): Currency {
+  return String(raw ?? "") === "UAH" ? "UAH" : budget;
 }
 
 function owner(raw: FormDataEntryValue | null): WishOwner | null {
@@ -50,7 +51,7 @@ export async function addWishItem(
   _prev: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
-  const { supabase, profile } = await requireProfile();
+  const { supabase, profile, currency: budgetCurrency } = await requireProfile();
 
   const forWhom = owner(formData.get("for_whom"));
   if (!forWhom) return { error: "Обери, для кого це" };
@@ -67,7 +68,7 @@ export async function addWishItem(
     url: safeUrl(formData.get("url")),
     note: text(formData.get("note"), 1000),
     price: rawPrice ? parseAmount(rawPrice) : null,
-    currency: currency(formData.get("currency")),
+    currency: currency(formData.get("currency"), budgetCurrency),
     image_path: safeImagePath(formData.get("image_path")),
     image_position: imagePosition(formData.get("image_position")),
   });
@@ -82,7 +83,7 @@ export async function updateWishItem(
   _prev: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
-  const { supabase } = await requireProfile();
+  const { supabase, currency: budgetCurrency } = await requireProfile();
 
   const id = text(formData.get("id"), 40);
   if (!id) return { error: "Запис не знайдено" };
@@ -114,7 +115,7 @@ export async function updateWishItem(
       url: safeUrl(formData.get("url")),
       note: text(formData.get("note"), 1000),
       price: rawPrice ? parseAmount(rawPrice) : null,
-      currency: currency(formData.get("currency")),
+      currency: currency(formData.get("currency"), budgetCurrency),
       image_path: imagePath,
       image_position: imagePosition(formData.get("image_position")),
     })

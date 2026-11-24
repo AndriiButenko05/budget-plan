@@ -1,5 +1,6 @@
 "use client";
 
+import { useCurrency } from "@/components/currency";
 import {
   Bar,
   BarChart,
@@ -23,6 +24,7 @@ type Props = {
 
 /** Хто скільки витратив у кожній категорії. */
 export default function OwnerCompareBar({ data, series }: Props) {
+  const currency = useCurrency();
   if (data.length === 0) {
     return <p className="py-12 text-center text-sm text-muted">Немає даних</p>;
   }
@@ -36,10 +38,10 @@ export default function OwnerCompareBar({ data, series }: Props) {
           margin={{ top: 4, right: 12, bottom: 0, left: 4 }}
         >
           <CartesianGrid stroke={gridStroke} horizontal={false} />
-          <XAxis type="number" tickFormatter={formatMoneyShort} {...axisStyle} />
+          <XAxis type="number" tickFormatter={(value: number) => formatMoneyShort(value, currency)} {...axisStyle} />
           <YAxis type="category" dataKey="name" width={92} {...axisStyle} />
           <Tooltip
-            formatter={moneyTooltip}
+            formatter={moneyTooltip(currency)}
             cursor={{ fill: "#ffffff0a" }}
             {...tooltipStyle}
           />

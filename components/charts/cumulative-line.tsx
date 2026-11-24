@@ -1,5 +1,6 @@
 "use client";
 
+import { useCurrency } from "@/components/currency";
 import {
   CartesianGrid,
   Legend,
@@ -23,15 +24,16 @@ type Point = { day: number; current: number | null; previous: number | null };
 
 /** Наростаючі витрати по днях: цей місяць проти минулого. */
 export default function CumulativeLine({ data }: { data: Point[] }) {
+  const currency = useCurrency();
   return (
     <div className="h-60 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -12 }}>
           <CartesianGrid stroke={gridStroke} vertical={false} />
           <XAxis dataKey="day" {...axisStyle} />
-          <YAxis tickFormatter={formatMoneyShort} width={70} {...axisStyle} />
+          <YAxis tickFormatter={(value: number) => formatMoneyShort(value, currency)} width={70} {...axisStyle} />
           <Tooltip
-            formatter={moneyTooltip}
+            formatter={moneyTooltip(currency)}
             labelFormatter={dayTooltipLabel}
             {...tooltipStyle}
           />

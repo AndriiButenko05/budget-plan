@@ -1,11 +1,13 @@
 "use client";
 
+import { useCurrency } from "@/components/currency";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { moneyTooltip, tooltipStyle } from "@/components/charts/theme";
 import { formatMoney } from "@/lib/format";
 import type { CategorySlice } from "@/lib/aggregate";
 
 export default function CategoryPie({ slices }: { slices: CategorySlice[] }) {
+  const currency = useCurrency();
   if (slices.length === 0) {
     return <p className="py-12 text-center text-sm text-muted">Немає даних</p>;
   }
@@ -28,7 +30,7 @@ export default function CategoryPie({ slices }: { slices: CategorySlice[] }) {
                 <Cell key={slice.id} fill={slice.color} />
               ))}
             </Pie>
-            <Tooltip formatter={moneyTooltip} {...tooltipStyle} />
+            <Tooltip formatter={moneyTooltip(currency)} {...tooltipStyle} />
           </PieChart>
         </ResponsiveContainer>
       </div>
@@ -42,7 +44,7 @@ export default function CategoryPie({ slices }: { slices: CategorySlice[] }) {
               aria-hidden
             />
             <span className="mr-auto truncate">{slice.name}</span>
-            <span className="tabular-nums">{formatMoney(slice.total)}</span>
+            <span className="tabular-nums">{formatMoney(slice.total, currency)}</span>
             <span className="w-10 text-right text-xs tabular-nums text-muted">
               {Math.round(slice.share * 100)}%
             </span>

@@ -1,13 +1,15 @@
 import { formatMoney } from "@/lib/format";
 import type { CategorySlice } from "@/lib/aggregate";
+import type { BudgetCurrency } from "@/lib/types";
 
 type Props = {
   slices: CategorySlice[];
   /** category_id → ліміт на місяць. Якщо є — показуємо перевитрату. */
   limits?: Map<string, number>;
+  currency: BudgetCurrency;
 };
 
-export default function CategoryBars({ slices, limits }: Props) {
+export default function CategoryBars({ slices, limits, currency }: Props) {
   if (slices.length === 0) {
     return <p className="py-6 text-center text-sm text-muted">Ще немає витрат</p>;
   }
@@ -24,14 +26,14 @@ export default function CategoryBars({ slices, limits }: Props) {
             <div className="mb-1.5 flex items-baseline gap-2 text-sm">
               <span aria-hidden>{slice.icon}</span>
               <span className="mr-auto truncate">{slice.name}</span>
-              <span className="font-semibold tabular-nums">{formatMoney(slice.total)}</span>
+              <span className="font-semibold tabular-nums">{formatMoney(slice.total, currency)}</span>
               <span
                 className={`w-24 text-right text-xs tabular-nums ${
                   over ? "text-danger" : "text-muted"
                 }`}
               >
                 {limit !== undefined
-                  ? `з ${formatMoney(limit)}`
+                  ? `з ${formatMoney(limit, currency)}`
                   : `${Math.round(slice.share * 100)}%`}
               </span>
             </div>

@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ImagePlus, Loader2, X } from "lucide-react";
+import { useCurrency } from "@/components/currency";
 import Modal from "@/components/modal";
 import { addWishItem, updateWishItem } from "@/lib/actions/wishlist";
 import { idle } from "@/lib/actions/shared";
@@ -36,7 +37,8 @@ export default function WishDialog({
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [forWhom, setForWhom] = useState<WishOwner>(item?.for_whom ?? defaultOwner);
-  const [currency, setCurrency] = useState(item?.currency ?? "PLN");
+  const budgetCurrency = useCurrency();
+  const [currency, setCurrency] = useState(item?.currency ?? budgetCurrency);
   // Ціна у вішлісті — орієнтир, копійки тут ні до чого.
   const [price, setPrice] = useState(
     item?.price != null ? String(Math.round(item.price)) : "",
@@ -232,10 +234,10 @@ export default function WishDialog({
               name="currency"
               aria-label="Валюта"
               value={currency}
-              onChange={(e) => setCurrency(e.target.value === "UAH" ? "UAH" : "PLN")}
+              onChange={(e) => setCurrency(e.target.value === "UAH" ? "UAH" : budgetCurrency)}
               className="field w-24 shrink-0 px-2"
             >
-              <option value="PLN">PLN</option>
+              <option value={budgetCurrency}>{budgetCurrency}</option>
               <option value="UAH">UAH</option>
             </select>
           </div>

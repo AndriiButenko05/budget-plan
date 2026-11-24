@@ -5,6 +5,7 @@ import {
   MonthsBar,
   OwnerCompareBar,
 } from "@/components/charts/lazy";
+import { CurrencyProvider } from "@/components/currency";
 import { CardSkeleton } from "@/components/skeletons";
 import {
   byCategory,
@@ -52,7 +53,7 @@ function ChartsSkeleton() {
 }
 
 async function ChartsContent() {
-  const { supabase } = await requireProfile();
+  const { supabase, currency } = await requireProfile();
 
   const month = currentMonthKey();
   const previousMonth = shiftMonth(month, -1);
@@ -86,7 +87,7 @@ async function ChartsContent() {
   );
 
   return (
-    <>
+    <CurrencyProvider currency={currency}>
       <div className="flex items-baseline justify-between px-1">
         <h1 className="text-lg font-semibold">Графіки</h1>
         <p className="text-xs text-muted">{formatMonthYear(`${month}-01`)}</p>
@@ -96,7 +97,7 @@ async function ChartsContent() {
         <div className="mb-4 flex items-baseline justify-between">
           <h2 className="text-sm font-semibold">Розподіл по категоріях</h2>
           <span className="text-sm font-semibold tabular-nums">
-            {formatMoney(total(thisMonth))}
+            {formatMoney(total(thisMonth), currency)}
           </span>
         </div>
         <CategoryPie slices={byCategory(thisMonth, categories)} />
@@ -122,6 +123,6 @@ async function ChartsContent() {
           series={ownerSeries(profiles)}
         />
       </section>
-    </>
+    </CurrencyProvider>
   );
 }

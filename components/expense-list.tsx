@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Pencil, Trash2 } from "lucide-react";
+import { useCurrency } from "@/components/currency";
 import ExpenseDialog from "@/components/expense-dialog";
 import { deleteExpense } from "@/lib/actions/expenses";
 import { formatDayMonth, formatMoney } from "@/lib/format";
@@ -25,13 +26,14 @@ export default function ExpenseList({
   grouped = false,
   emptyText = "Записів немає",
 }: Props) {
+  const currency = useCurrency();
   const router = useRouter();
   const [editing, setEditing] = useState<ExpenseRow | null>(null);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
   function remove(expense: ExpenseRow) {
-    if (!confirm(`Видалити витрату на ${formatMoney(expense.amount)}?`)) return;
+    if (!confirm(`Видалити витрату на ${formatMoney(expense.amount, currency)}?`)) return;
 
     setPendingId(expense.id);
     startTransition(async () => {
@@ -60,7 +62,7 @@ export default function ExpenseList({
                   {formatDayMonth(date)}
                 </h3>
                 <span className="text-xs tabular-nums text-muted">
-                  {formatMoney(rows.reduce((sum, r) => sum + r.amount, 0))}
+                  {formatMoney(rows.reduce((sum, r) => sum + r.amount, 0), currency)}
                 </span>
               </div>
             )}
@@ -103,7 +105,7 @@ export default function ExpenseList({
                   </div>
 
                   <span className="shrink-0 text-sm font-semibold tabular-nums">
-                    {formatMoney(expense.amount)}
+                    {formatMoney(expense.amount, currency)}
                   </span>
 
                   <div className="flex shrink-0 gap-0.5">

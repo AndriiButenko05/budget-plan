@@ -1,5 +1,6 @@
 "use client";
 
+import { useCurrency } from "@/components/currency";
 import {
   Bar,
   BarChart,
@@ -29,6 +30,7 @@ export default function MonthsBar({
   /** «YYYY-MM» поточного місяця — підсвічуємо його стовпчик. */
   highlight: string;
 }) {
+  const currency = useCurrency();
   return (
     <div className="h-60 w-full">
       <ResponsiveContainer width="100%" height="100%">
@@ -39,9 +41,9 @@ export default function MonthsBar({
             tickFormatter={(month: string) => formatShortMonth(`${month}-01`)}
             {...axisStyle}
           />
-          <YAxis tickFormatter={formatMoneyShort} width={70} {...axisStyle} />
+          <YAxis tickFormatter={(value: number) => formatMoneyShort(value, currency)} width={70} {...axisStyle} />
           <Tooltip
-            formatter={moneyTooltip}
+            formatter={moneyTooltip(currency)}
             labelFormatter={monthTooltipLabel}
             cursor={{ fill: "#ffffff0a" }}
             {...tooltipStyle}

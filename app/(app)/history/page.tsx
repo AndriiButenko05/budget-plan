@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { CurrencyProvider } from "@/components/currency";
 import AddExpenseButton from "@/components/add-expense-button";
 import CategoryBars from "@/components/category-bars";
 import ExpenseList from "@/components/expense-list";
@@ -38,7 +39,7 @@ function HistorySkeleton() {
 async function HistoryContent({
   searchParams,
 }: Pick<PageProps<"/history">, "searchParams">) {
-  const { supabase } = await requireProfile();
+  const { supabase, currency } = await requireProfile();
   const resolved = await searchParams;
 
   const month = normalizeMonthKey(asString(resolved.month));
@@ -58,7 +59,7 @@ async function HistoryContent({
   );
 
   return (
-    <>
+    <CurrencyProvider currency={currency}>
       <div className="flex items-center justify-between px-1">
         <h1 className="text-lg font-semibold">Історія</h1>
         <ExportCsvButton expenses={expenses} filename={`budget-${month}.csv`} />
@@ -72,7 +73,7 @@ async function HistoryContent({
             {formatMonthYear(`${month}-01`)}
           </p>
           <p className="mt-1 text-3xl font-semibold tabular-nums">
-            {formatMoney(total(expenses))}
+            {formatMoney(total(expenses), currency)}
           </p>
         </div>
         <p className="text-xs text-muted">{expenses.length} записів</p>
@@ -81,7 +82,7 @@ async function HistoryContent({
       {expenses.length > 0 && (
         <section className="card p-5">
           <h2 className="mb-4 text-sm font-semibold">Розподіл за місяць</h2>
-          <CategoryBars slices={byCategory(expenses, categories)} />
+          <CategoryBars slices={byCategory(expenses, categories)} currency={currency} />
         </section>
       )}
 
@@ -97,7 +98,7 @@ async function HistoryContent({
         categories={categories.filter((c) => !c.is_archived)}
         profiles={profiles}
       />
-    </>
+    </CurrencyProvider>
   );
 }
 
